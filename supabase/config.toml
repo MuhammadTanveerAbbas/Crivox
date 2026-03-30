@@ -1,0 +1,4 @@
+project_id = "kvrzkxmnguotchyiposo"
+
+[functions.generate-comments]
+verify_jwt = false
