@@ -20,7 +20,7 @@ const Login = () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: window.location.origin + "/dashboard" },
+        options: { redirectTo: window.location.origin },
       });
       if (error) toast.error("Failed to sign in with Google");
     } catch {
