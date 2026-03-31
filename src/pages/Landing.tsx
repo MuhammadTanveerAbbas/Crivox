@@ -8,7 +8,9 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { PlatformsGrid } from "@/components/landing/PlatformsGrid";
 import { ToneExamples } from "@/components/landing/ToneExamples";
 import { StatsBar } from "@/components/landing/StatsBar";
+import { EngagementMetrics } from "@/components/landing/EngagementMetrics";
 import { Testimonials } from "@/components/landing/Testimonials";
+import { PlatformInsights } from "@/components/landing/PlatformInsights";
 import { ComparisonTable } from "@/components/landing/ComparisonTable";
 import { CTASection } from "@/components/landing/CTASection";
 import { FAQSection } from "@/components/landing/FAQSection";
@@ -32,7 +34,9 @@ const Landing = () => {
       <PlatformsGrid />
       <ToneExamples />
       <StatsBar />
+      <EngagementMetrics />
       <Testimonials />
+      <PlatformInsights />
       <ComparisonTable />
       <PricingSection />
       <FAQSection />

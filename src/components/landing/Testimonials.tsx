@@ -9,10 +9,10 @@ export const Testimonials = () => (
           <MessageSquare className="h-6 w-6 text-blue-600" />
         </div>
         <h2 className="font-display text-2xl sm:text-3xl font-medium tracking-tight text-foreground mb-4">
-            Early access — be the first
+            Early access  be the first
           </h2>
           <p className="text-muted-foreground leading-relaxed">
-            Crivox is new. We don't have testimonials yet — and we won't fake them.
+            Crivox is new. We don't have testimonials yet  and we won't fake them.
             Try it yourself and see if it works for you.
           </p>
       </ScrollReveal>

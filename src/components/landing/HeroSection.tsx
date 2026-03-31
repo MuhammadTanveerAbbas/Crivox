@@ -4,7 +4,7 @@ import { ArrowRight, Copy, Shield, Zap, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
 const sampleComments = [
-  "Great analysis — the data on retention really stands out. Have you seen similar patterns in B2C?",
+  "Great analysis  the data on retention really stands out. Have you seen similar patterns in B2C?",
   "This resonates. We tried a similar approach last quarter and the results were surprisingly positive.",
   "Bookmarking this. The framework you outlined in point 3 is exactly what our team needs right now.",
 ];

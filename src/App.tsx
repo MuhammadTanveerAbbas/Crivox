@@ -16,6 +16,7 @@ import BulkGeneratePage from "./pages/BulkGeneratePage";
 import QueuePage from "./pages/QueuePage";
 import SharePage from "./pages/SharePage";
 import SettingsPage from "./pages/SettingsPage";
+import PricingPage from "./pages/PricingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="/dashboard/queue" element={<ProtectedRoute><QueuePage /></ProtectedRoute>} />
               <Route path="/dashboard/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               
+              <Route path="/pricing" element={<PricingPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

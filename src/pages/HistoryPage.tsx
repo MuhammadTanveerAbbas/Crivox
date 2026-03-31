@@ -93,7 +93,7 @@ const HistoryPage = () => {
       content: item.input_content || "",
     });
     navigate(`/dashboard?${params.toString()}`);
-    toast.success("Settings loaded — ready to generate!");
+    toast.success("Settings loaded  ready to generate!");
   };
 
   const exportCSV = () => {

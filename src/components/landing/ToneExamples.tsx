@@ -13,7 +13,7 @@ const examples = [
   {
     tone: "Casual",
     Icon: Coffee,
-    text: "Love this take! Totally agree — keeping it simple is the way to go. Shared it with my team!",
+    text: "Love this take! Totally agree  keeping it simple is the way to go. Shared it with my team!",
   },
   {
     tone: "Witty",

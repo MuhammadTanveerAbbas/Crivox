@@ -13,7 +13,7 @@ const faqs = [
   },
   {
     q: "Does it actually fetch URLs?",
-    a: "No — URL mode passes the URL as text to the AI. It does not scrape or fetch the page content. For best results, paste the actual post text.",
+    a: "No  URL mode passes the URL as text to the AI. It does not scrape or fetch the page content. For best results, paste the actual post text.",
   },
   {
     q: "Which platforms are supported?",

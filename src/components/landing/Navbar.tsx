@@ -1,30 +1,40 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, MessageSquare } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navLinks = [
-  { label: "Features", id: "features" },
-  { label: "How It Works", id: "how-it-works" },
-  { label: "Pricing", id: "pricing" },
+  { label: "Features", id: "features", route: null },
+  { label: "How It Works", id: "how-it-works", route: null },
+  { label: "Pricing", id: "pricing", route: "/pricing" },
 ];
 
 export const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
 
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  const handleNav = (item: typeof navLinks[0]) => {
     setOpen(false);
+    if (item.route) {
+      navigate(item.route);
+    } else {
+      if (location.pathname !== "/") {
+        navigate("/");
+        setTimeout(() => document.getElementById(item.id)?.scrollIntoView({ behavior: "smooth" }), 100);
+      } else {
+        document.getElementById(item.id)?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
   };
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 max-w-6xl mx-auto">
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
           <div className="h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center">
             <MessageSquare className="h-4 w-4 text-white" />
           </div>
@@ -36,8 +46,8 @@ export const Navbar = () => {
           {navLinks.map((item) => (
             <button
               key={item.id}
-              onClick={() => scrollTo(item.id)}
-              className="text-sm text-muted-foreground"
+              onClick={() => handleNav(item)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {item.label}
             </button>
@@ -69,8 +79,8 @@ export const Navbar = () => {
                 {navLinks.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => scrollTo(item.id)}
-                    className="text-left px-3 py-2.5 text-sm text-muted-foreground rounded-lg"
+                    onClick={() => handleNav(item)}
+                    className="text-left px-3 py-2.5 text-sm text-muted-foreground rounded-lg hover:text-foreground transition-colors"
                   >
                     {item.label}
                   </button>
