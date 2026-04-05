@@ -27,6 +27,7 @@ const StatsPage = () => {
   const { user } = useAuth();
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -34,9 +35,11 @@ const StatsPage = () => {
       const { data } = await supabase
         .from("comment_history")
         .select("id, input_type, platform, tone, created_at")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1000);
-      setItems((data ?? []).map((d: any) => ({ id: d.id, input_type: d.input_type, platform: d.platform, tone: d.tone, created_at: d.created_at })));
+      if (!data) { setFetchError(true); setLoading(false); return; }
+      setItems(data.map((d: any) => ({ id: d.id, input_type: d.input_type, platform: d.platform, tone: d.tone, created_at: d.created_at })));
       setLoading(false);
     };
     fetch();
@@ -103,8 +106,11 @@ const StatsPage = () => {
           <p className="text-muted-foreground text-sm mt-1">Your comment generation analytics</p>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        {fetchError ? (
+          <div className="text-center py-20 text-muted-foreground">
+            <p>Something went wrong. Please refresh the page.</p>
+          </div>
+        ) : loading ? (          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="bg-card border border-border rounded-2xl shadow-sm p-4 sm:p-5">
                 <Skeleton className="h-8 w-16 mb-2" /><Skeleton className="h-4 w-24" />

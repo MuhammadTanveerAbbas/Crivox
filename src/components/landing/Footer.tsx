@@ -1,4 +1,4 @@
-import { MessageSquare } from "lucide-react";
+import CrivoxIcon from "@/components/CrivoxIcon";
 
 const links = {
   Product: ["Features", "Pricing", "Changelog"],
@@ -13,9 +13,7 @@ export const Footer = () => (
         {/* Brand */}
         <div className="col-span-2 sm:col-span-1">
           <div className="flex items-center gap-2 mb-4">
-            <div className="h-6 w-6 rounded-md bg-blue-600 flex items-center justify-center">
-              <MessageSquare className="h-3.5 w-3.5 text-white" />
-            </div>
+            <CrivoxIcon size={24} />
             <span className="font-display text-base text-foreground">Crivox</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed max-w-[200px]">

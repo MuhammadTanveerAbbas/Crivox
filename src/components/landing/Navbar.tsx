@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, MessageSquare } from "lucide-react";
+import { Menu } from "lucide-react";
+import CrivoxIcon from "@/components/CrivoxIcon";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navLinks = [
@@ -35,9 +36,7 @@ export const Navbar = () => {
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 max-w-6xl mx-auto">
         {/* Logo */}
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-          <div className="h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center">
-            <MessageSquare className="h-4 w-4 text-white" />
-          </div>
+          <CrivoxIcon size={28} />
           <span className="font-display text-xl text-foreground tracking-tight">Crivox</span>
         </div>
 

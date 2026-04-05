@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#bfdbfe"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="80" height="80" rx="20" fill="url(#bg)"/>
+  <!-- Subtle inner glow -->
+  <rect width="80" height="80" rx="20" fill="white" opacity="0.05"/>
+  <!-- Speech bubble body -->
+  <path d="M14 22a6 6 0 0 1 6-6h40a6 6 0 0 1 6 6v22a6 6 0 0 1-6 6H49l-9 10-9-10H20a6 6 0 0 1-6-6V22z" fill="white" opacity="0.12"/>
+  <path d="M14 22a6 6 0 0 1 6-6h40a6 6 0 0 1 6 6v22a6 6 0 0 1-6 6H49l-9 10-9-10H20a6 6 0 0 1-6-6V22z" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Lightning bolt -->
+  <path d="M44 16l-9.5 13h7.5l-5.5 15 14-17h-8z" fill="url(#bolt)"/>
+</svg>

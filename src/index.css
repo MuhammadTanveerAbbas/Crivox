@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent horizontal overflow on all screens */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Responsive media */
+img, video, svg {
+  max-width: 100%;
+  height: auto;
+}
+
 @layer base {
   :root {
     --background: 0 0% 99%;

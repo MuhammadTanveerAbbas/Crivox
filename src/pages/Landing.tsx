@@ -1,6 +1,3 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
 import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { TrustStrip } from "@/components/landing/TrustStrip";
@@ -18,13 +15,6 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { Footer } from "@/components/landing/Footer";
 
 const Landing = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && user) navigate("/dashboard");
-  }, [user, loading, navigate]);
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />

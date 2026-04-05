@@ -44,7 +44,9 @@ const QueuePage = () => {
   useEffect(() => {
     if (!user) return;
     const fetchQueue = async () => {
-      const { data, error } = await supabase.from("comment_queue").select("*")
+      const { data, error } = await supabase.from("comment_queue")
+        .select("id, comment_text, platform, tone, notes, scheduled_date, scheduled_time, status, created_at, completed_at")
+        .eq("user_id", user.id)
         .order("scheduled_date", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false });
       if (error) toast.error("Failed to load queue");

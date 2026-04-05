@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Copy, Check, ArrowRight } from "lucide-react";
+import { Copy, Check, ArrowRight } from "lucide-react";
+import CrivoxIcon from "@/components/CrivoxIcon";
 import { toast } from "sonner";
 
 interface SharedData {
@@ -78,9 +79,7 @@ const SharePage = () => {
       </div>
 
       <nav className="flex items-center gap-2 px-4 sm:px-6 py-4 max-w-3xl mx-auto">
-        <div className="h-6 w-6 rounded-md bg-blue-600 flex items-center justify-center">
-          <MessageSquare className="h-3.5 w-3.5 text-white" />
-        </div>
+        <CrivoxIcon size={24} />
         <span className="font-display text-base text-foreground">Crivox</span>
       </nav>
 

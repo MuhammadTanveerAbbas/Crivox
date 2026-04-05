@@ -1,4 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="8" fill="#2563EB"/>
-  <path d="M8 10a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-3l-3 3-3-3H10a2 2 0 0 1-2-2V10z" fill="none" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="32" height="32" rx="8" fill="url(#bg)"/>
+  <!-- Speech bubble body -->
+  <path d="M6 9a2.5 2.5 0 0 1 2.5-2.5h15A2.5 2.5 0 0 1 26 9v9a2.5 2.5 0 0 1-2.5 2.5h-4.2l-3.3 3.8-3.3-3.8H8.5A2.5 2.5 0 0 1 6 18V9z" fill="white" opacity="0.15"/>
+  <path d="M6 9a2.5 2.5 0 0 1 2.5-2.5h15A2.5 2.5 0 0 1 26 9v9a2.5 2.5 0 0 1-2.5 2.5h-4.2l-3.3 3.8-3.3-3.8H8.5A2.5 2.5 0 0 1 6 18V9z" fill="none" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Lightning bolt inside bubble -->
+  <path d="M17.5 8.5l-3.8 5.2h3l-2.2 5.8 5.5-6.8h-3.2z" fill="white"/>
 </svg>

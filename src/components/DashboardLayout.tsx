@@ -3,10 +3,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
 import {
-  MessageSquare, History, Settings, Menu, X,
+  History, Settings, Menu, X,
   Zap, LayoutGrid, BookOpen, BarChart3, ChevronRight,
-  PanelLeftClose, PanelLeft, CalendarClock,
+  PanelLeftClose, PanelLeft, CalendarClock, LogOut,
 } from "lucide-react";
+import CrivoxIcon from "@/components/CrivoxIcon";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,9 +84,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
             "flex items-center border-b border-border h-14",
             collapsed && !isMobile ? "justify-center px-2" : "gap-2.5 px-5"
           )}>
-            <div className="h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-              <MessageSquare className="h-4 w-4 text-white" />
-            </div>
+            <CrivoxIcon size={collapsed && !isMobile ? 28 : 28} />
             {(!collapsed || isMobile) && (
               <span className="font-display text-lg text-foreground truncate">Crivox</span>
             )}
@@ -132,7 +131,17 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
           {/* Collapse toggle */}
           {!isMobile && (
-            <div className="px-3 pb-4">
+            <div className="px-3 pb-4 space-y-1">
+              {/* Sign out */}
+              {(!collapsed || isMobile) && (
+                <button
+                  onClick={async () => { await supabase.auth.signOut(); navigate("/", { replace: true }); }}
+                  className="flex items-center gap-3 w-full rounded-xl text-sm text-muted-foreground px-3 py-2 hover:text-foreground transition-colors"
+                >
+                  <LogOut className="h-4 w-4 shrink-0" />
+                  <span>Sign out</span>
+                </button>
+              )}
               <button
                 onClick={() => setCollapsed(!collapsed)}
                 className={cn(

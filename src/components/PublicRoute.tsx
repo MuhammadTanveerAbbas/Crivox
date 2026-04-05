@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 function FullScreenLoader() {
@@ -9,15 +9,14 @@ function FullScreenLoader() {
   );
 }
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+// Blocks access to public pages (landing, login) when user is already logged in
+export function PublicRoute() {
   const { session, loading } = useAuth();
 
-  // Don't render anything while resolving session — prevents flicker
   if (loading) return <FullScreenLoader />;
 
-  if (!session) return <Navigate to="/login" replace />;
+  // Already logged in → skip landing/auth, go straight to dashboard
+  if (session) return <Navigate to="/dashboard" replace />;
 
-  return <>{children}</>;
-};
-
-export default ProtectedRoute;
+  return <Outlet />;
+}

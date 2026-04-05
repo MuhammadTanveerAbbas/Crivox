@@ -53,6 +53,7 @@ const TemplatesPage = () => {
       const { data } = await supabase
         .from("comment_templates")
         .select("id, category, title, content, is_preset")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       const userTemplates: Template[] = (data ?? []).map((d: any) => ({

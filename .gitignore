@@ -45,3 +45,6 @@ Thumbs.db
 
 # Supabase
 .supabase
+
+# Vercel
+.vercel

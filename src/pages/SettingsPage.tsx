@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
+import { useNavigate } from "react-router-dom";
 import { Sun, Moon, LogOut, Trash2, User, Save, Languages, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,7 @@ const languages = [
 const SettingsPage = () => {
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [defaultTone, setDefaultTone] = useState("Professional");
@@ -240,7 +242,7 @@ const SettingsPage = () => {
         <div className="bg-card border border-border rounded-xl shadow-sm p-5">
           <div className="flex items-center justify-between">
             <p className="text-sm text-foreground">Sign out</p>
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={signOut}>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => { await signOut(); navigate("/", { replace: true }); }}>
               <LogOut className="h-3.5 w-3.5" /> Sign out
             </Button>
           </div>

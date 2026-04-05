@@ -1,19 +1,12 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Star } from "lucide-react";
+import CrivoxIcon from "@/components/CrivoxIcon";
+import { useState } from "react";
 import { toast } from "sonner";
 
 const Login = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
   const [signingIn, setSigningIn] = useState(false);
-
-  useEffect(() => {
-    if (!loading && user) navigate("/dashboard");
-  }, [user, loading, navigate]);
 
   const handleGoogleLogin = async () => {
     setSigningIn(true);
@@ -30,8 +23,6 @@ const Login = () => {
     }
   };
 
-  if (loading) return null;
-
   return (
     <div className="min-h-screen flex">
       {/* Left decorative panel */}
@@ -44,9 +35,7 @@ const Login = () => {
 
         {/* Logo */}
         <div className="relative flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-white/20 flex items-center justify-center">
-            <MessageSquare className="h-4 w-4 text-white" />
-          </div>
+          <CrivoxIcon size={32} />
           <span className="font-display text-xl text-white">Crivox</span>
         </div>
 
@@ -90,9 +79,7 @@ const Login = () => {
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 md:hidden">
-            <div className="h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center">
-              <MessageSquare className="h-4 w-4 text-white" />
-            </div>
+            <CrivoxIcon size={28} />
             <span className="font-display text-xl text-foreground">Crivox</span>
           </div>
 

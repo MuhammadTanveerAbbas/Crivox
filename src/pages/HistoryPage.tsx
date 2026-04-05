@@ -41,7 +41,8 @@ const HistoryPage = () => {
     const fetchHistory = async () => {
       const { data, error } = await supabase
         .from("comment_history")
-        .select("*")
+        .select("id, input_type, input_content, platform, tone, length, generated_comments, is_favorite, created_at")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) { toast.error("Failed to load history"); }
