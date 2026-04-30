@@ -1,37 +1,45 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+export default async function handler(req: Request) {
+  const authHeader = req.headers.get("authorization");
+  const expectedSecret = process.env.CRON_SECRET;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-export const dynamic = 'force-dynamic';
-
-export async function GET(request: Request) {
-  const authHeader = request.headers.get('Authorization');
-  
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
+  if (!expectedSecret) {
+    return new Response(JSON.stringify({ error: "CRON_SECRET not configured" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
-  const { error } = await supabase.from('users').select('id').limit(1);
+  if (!authHeader || authHeader !== `Bearer ${expectedSecret}`) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return new Response(JSON.stringify({ error: "Supabase not configured" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+  const { error } = await supabase.from("users").select("id").limit(1).maybeSingle();
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 
-  return new Response(JSON.stringify({ status: 'ok' }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
+  return new Response(JSON.stringify({ success: true, message: "Keep-alive ping completed" }), {
+    headers: { "Content-Type": "application/json" },
   });
 }
