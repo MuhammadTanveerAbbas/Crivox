@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
-import { Sun, Moon, LogOut, Trash2, User, Save, Languages, AlertTriangle } from "lucide-react";
+import { Sun, Moon, LogOut, Trash2, User, Save, Languages, AlertTriangle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -35,10 +35,13 @@ const SettingsPage = () => {
   const [defaultLanguage, setDefaultLanguage] = useState("en");
   const [profileLoading, setProfileLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [memory, setMemory] = useState({ full_name: "", profession: "", industry: "", target_audience: "", use_case: "" });
+  const [editingMemory, setEditingMemory] = useState(false);
+  const [savingMemory, setSavingMemory] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("display_name, default_tone, default_platform, default_language")
+    supabase.from("profiles").select("display_name, default_tone, default_platform, default_language, full_name, profession, industry, target_audience, use_case")
       .eq("user_id", user.id).maybeSingle()
       .then(({ data }) => {
         if (data) {
@@ -46,6 +49,13 @@ const SettingsPage = () => {
           setDefaultTone(data.default_tone || "Professional");
           setDefaultPlatform(data.default_platform || "LinkedIn");
           setDefaultLanguage(data.default_language || "en");
+          setMemory({
+            full_name: data.full_name || "",
+            profession: data.profession || "",
+            industry: data.industry || "",
+            target_audience: data.target_audience || "",
+            use_case: data.use_case || "",
+          });
         } else {
           setDisplayName(user.email?.split("@")[0] || "");
         }
@@ -63,6 +73,26 @@ const SettingsPage = () => {
     if (error) toast.error("Failed to save");
     else toast.success("Saved!");
     setSaving(false);
+  };
+
+  const handleSaveMemory = async () => {
+    setSavingMemory(true);
+    const { error } = await supabase.from("profiles").upsert({
+      user_id: user!.id,
+      full_name: memory.full_name || null,
+      profession: memory.profession || null,
+      industry: memory.industry || null,
+      target_audience: memory.target_audience || null,
+      use_case: memory.use_case || null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+    if (error) {
+      console.error("Save memory error:", error);
+      toast.error("Failed to save memory");
+    }
+    else toast.success("Memory saved!");
+    setSavingMemory(false);
+    setEditingMemory(false);
   };
 
   const handleDeleteHistory = async () => {
@@ -146,6 +176,55 @@ const SettingsPage = () => {
           <Button onClick={handleSaveProfile} disabled={saving} size="sm" className="gap-1.5 bg-blue-600 text-white">
             <Save className="h-3.5 w-3.5" /> {saving ? "Saving..." : "Save"}
           </Button>
+        </div>
+
+        {/* AI Memory */}
+        <div className={card}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-muted-foreground" /> AI Memory
+            </h3>
+            {!editingMemory && (
+              <Button variant="outline" size="sm" onClick={() => setEditingMemory(true)}>Edit</Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">Helps generate more relevant comments</p>
+          {editingMemory ? (
+            <div className="space-y-3">
+              {[
+                { key: "full_name", label: "Name", placeholder: "Your name" },
+                { key: "profession", label: "Profession", placeholder: "e.g., Marketer, Founder" },
+                { key: "industry", label: "Industry", placeholder: "e.g., Tech, E-commerce" },
+                { key: "target_audience", label: "Target Audience", placeholder: "e.g., Customers, Peers" },
+                { key: "use_case", label: "Why Crivox", placeholder: "e.g., Save time, Grow audience" },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label className="text-xs font-medium text-foreground mb-1 block">{field.label}</label>
+                  <Input
+                    placeholder={field.placeholder}
+                    value={memory[field.key as keyof typeof memory]}
+                    onChange={(e) => setMemory({ ...memory, [field.key]: e.target.value })}
+                  />
+                </div>
+              ))}
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleSaveMemory} disabled={savingMemory} className="bg-blue-600 text-white">
+                  <Save className="h-3.5 w-3.5 mr-1" /> {savingMemory ? "Saving..." : "Save"}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setEditingMemory(false)}>Cancel</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+              {Object.entries(memory).map(([key, value]) => value && (
+                <div key={key} className="flex gap-2">
+                  <span className="text-muted-foreground capitalize">{key.replace("_", " ")}:</span>
+                  <span className="text-foreground">{value}</span>
+                </div>
+              ))}
+              {!Object.values(memory).some(v => v) && <p className="text-muted-foreground text-xs">No memory set yet</p>}
+            </div>
+          )}
         </div>
 
         {/* Theme */}

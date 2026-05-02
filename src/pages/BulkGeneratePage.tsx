@@ -76,6 +76,7 @@ const BulkGeneratePage = () => {
             content: row.content, tone, platform, length: "Medium", language,
             input_type: row.type,
             include_emoji: includeEmoji, include_hashtags: includeHashtags, include_cta: includeCTA,
+            userId: user?.id,
           });
           updateRow(row.id, { comments, loading: false });
           await supabase.from("comment_history").insert({ user_id: user!.id, input_type: row.type, input_content: row.content.slice(0, 500), platform, tone, length: "Medium", generated_comments: comments });

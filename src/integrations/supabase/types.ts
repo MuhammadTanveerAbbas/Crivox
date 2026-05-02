@@ -133,6 +133,12 @@ export type Database = {
           default_platform: string | null
           default_tone: string | null
           display_name: string | null
+          full_name: string | null
+          profession: string | null
+          use_case: string | null
+          industry: string | null
+          target_audience: string | null
+          has_onboarded: boolean
           id: string
           updated_at: string
           user_id: string
@@ -144,6 +150,12 @@ export type Database = {
           default_platform?: string | null
           default_tone?: string | null
           display_name?: string | null
+          full_name?: string | null
+          profession?: string | null
+          use_case?: string | null
+          industry?: string | null
+          target_audience?: string | null
+          has_onboarded?: boolean
           id?: string
           updated_at?: string
           user_id: string
@@ -155,6 +167,12 @@ export type Database = {
           default_platform?: string | null
           default_tone?: string | null
           display_name?: string | null
+          full_name?: string | null
+          profession?: string | null
+          use_case?: string | null
+          industry?: string | null
+          target_audience?: string | null
+          has_onboarded?: boolean
           id?: string
           updated_at?: string
           user_id?: string

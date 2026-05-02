@@ -99,6 +99,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   default_tone TEXT DEFAULT 'Professional',
   default_platform TEXT DEFAULT 'LinkedIn',
   default_language TEXT DEFAULT 'en',
+  full_name TEXT,
+  profession TEXT,
+  industry TEXT,
+  target_audience TEXT,
+  use_case TEXT,
+  has_onboarded BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

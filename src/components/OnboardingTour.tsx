@@ -3,13 +3,13 @@ import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { User } from "@supabase/supabase-js";
 import {
   Zap, LayoutGrid, CalendarClock, BookOpen, History,
   ChevronRight, ChevronLeft, X, Sparkles,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-const STORAGE_KEY = "commentcraft_onboarding_done";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TourStep {
   selector: string;
@@ -51,7 +51,11 @@ const tourSteps: TourStep[] = [
   },
 ];
 
-const OnboardingTour = () => {
+interface OnboardingTourProps {
+  user: User | null;
+}
+
+const OnboardingTour = ({ user }: OnboardingTourProps) => {
   const [active, setActive] = useState(false);
   const [step, setStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -59,12 +63,23 @@ const OnboardingTour = () => {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    const done = localStorage.getItem(STORAGE_KEY);
-    if (!done && location.pathname === "/dashboard") {
-      const timer = setTimeout(() => setActive(true), 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [location.pathname]);
+    if (!user || location.pathname !== "/dashboard") return;
+
+    const checkOnboarding = async () => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('has_onboarded')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!profile?.has_onboarded) {
+        const timer = setTimeout(() => setActive(true), 1200);
+        return () => clearTimeout(timer);
+      }
+    };
+
+    checkOnboarding();
+  }, [user, location.pathname]);
 
   const updateTargetRect = useCallback(() => {
     if (!active) return;
@@ -98,8 +113,13 @@ const OnboardingTour = () => {
     if (step > 0) setStep(step - 1);
   };
 
-  const handleFinish = () => {
-    localStorage.setItem(STORAGE_KEY, "true");
+  const handleFinish = async () => {
+    if (user) {
+      await supabase
+        .from('profiles')
+        .update({ has_onboarded: true })
+        .eq('user_id', user.id);
+    }
     setActive(false);
   };
 

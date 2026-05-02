@@ -5,7 +5,7 @@ import PageTransition from "@/components/PageTransition";
 import {
   History, Settings, Menu, X,
   Zap, LayoutGrid, BookOpen, BarChart3, ChevronRight,
-  PanelLeftClose, PanelLeft, CalendarClock, LogOut,
+  PanelLeftClose, PanelLeft, CalendarClock, LogOut, User,
 } from "lucide-react";
 import CrivoxIcon from "@/components/CrivoxIcon";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import OnboardingTour from "@/components/OnboardingTour";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import OnboardingQuestionnaire from "@/components/OnboardingQuestionnaire";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
@@ -39,6 +45,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -51,6 +58,21 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         setDisplayName(data?.display_name || user.email?.split("@")[0] || null);
       });
   }, [user]);
+
+  useEffect(() => {
+    if (!user || location.pathname !== "/dashboard") return;
+    const checkQuestionnaire = async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("has_onboarded")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!profile?.has_onboarded) {
+        setShowQuestionnaire(true);
+      }
+    };
+    checkQuestionnaire();
+  }, [user, location.pathname]);
 
   const currentPage = navItems.find((item) => item.path === location.pathname);
   const breadcrumbs = [
@@ -184,22 +206,23 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
             {/* Right side */}
             <div className="ml-auto flex items-center gap-2">
               <ThemeToggle />
-              <button
-                onClick={() => navigate("/dashboard/settings")}
-                className="flex items-center gap-2.5 text-left"
-              >
-                <div className="hidden sm:block min-w-0 text-right">
-                  <p className="text-sm font-medium text-foreground truncate leading-tight">
-                    {displayName || user?.email?.split("@")[0] || "User"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground truncate leading-tight">
-                    {user?.email || ""}
-                  </p>
-                </div>
-                <div className="h-8 w-8 rounded-full bg-blue-600/10 flex items-center justify-center text-blue-600 text-xs font-semibold shrink-0">
-                  {(displayName || user?.email)?.[0]?.toUpperCase() ?? "U"}
-                </div>
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-semibold text-white shrink-0 hover:opacity-90 transition-opacity cursor-pointer">
+                    {(displayName || user?.email)?.[0]?.toUpperCase() ?? "U"}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={async () => { await supabase.auth.signOut(); navigate("/", { replace: true }); }}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 
@@ -207,7 +230,12 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
             <PageTransition>{children}</PageTransition>
           </main>
         </div>
-        <OnboardingTour />
+        {showQuestionnaire && user && (
+          <OnboardingQuestionnaire
+            user={user}
+            onComplete={() => setShowQuestionnaire(false)}
+          />
+        )}
       </div>
     </TooltipProvider>
   );

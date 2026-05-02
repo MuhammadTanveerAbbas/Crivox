@@ -121,6 +121,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
         tone, length, platform, language,
         include_emoji: includeEmoji, include_hashtags: includeHashtags,
         include_cta: includeCTA, count: commentCount,
+        userId: user?.id,
       });
 
       setComments(generated);
@@ -159,7 +160,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
         input_type: tab as "url" | "text" | "image",
         tone, length, platform, language,
         include_emoji: includeEmoji, include_hashtags: includeHashtags, include_cta: includeCTA,
-        single: true, variation_number: idx + 1,
+        single: true, variation_number: idx + 1, userId: user?.id,
       });
       if (generated[0]) {
         setComments((prev) => prev.map((c, i) => (i === idx ? generated[0] : c)));
