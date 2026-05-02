@@ -76,21 +76,30 @@ const SettingsPage = () => {
   };
 
   const handleSaveMemory = async () => {
+    if (!user) return;
     setSavingMemory(true);
-    const { error } = await supabase.from("profiles").upsert({
-      user_id: user!.id,
+    console.log("Saving memory with user_id:", user.id);
+    console.log("Memory data:", memory);
+    
+    const { data, error } = await supabase.from("profiles").upsert({
+      user_id: user.id,
       full_name: memory.full_name || null,
       profession: memory.profession || null,
       industry: memory.industry || null,
       target_audience: memory.target_audience || null,
       use_case: memory.use_case || null,
+      has_onboarded: true,
       updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
+    }, { onConflict: "user_id" }).select();
+    
+    console.log("Upsert result:", { data, error });
+    
     if (error) {
       console.error("Save memory error:", error);
-      toast.error("Failed to save memory");
+      toast.error("Failed to save memory: " + error.message);
+    } else {
+      toast.success("Memory saved!");
     }
-    else toast.success("Memory saved!");
     setSavingMemory(false);
     setEditingMemory(false);
   };

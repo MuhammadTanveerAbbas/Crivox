@@ -87,7 +87,8 @@ const OnboardingQuestionnaire = ({ user, onComplete }: OnboardingQuestionnairePr
 
   const handleSubmit = async () => {
     setSaving(true);
-    await supabase.from("profiles").upsert({
+    console.log("Submitting onboarding with user_id:", user.id);
+    const { data, error } = await supabase.from("profiles").upsert({
       user_id: user.id,
       full_name: formData.full_name || null,
       profession: formData.profession || null,
@@ -96,7 +97,11 @@ const OnboardingQuestionnaire = ({ user, onComplete }: OnboardingQuestionnairePr
       use_case: formData.use_case || null,
       has_onboarded: true,
       updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
+    }, { onConflict: "user_id" }).select();
+    
+    console.log("Onboarding submit result:", { data, error });
+    if (error) console.error("Onboarding error:", error);
+    
     setSaving(false);
     onComplete();
   };

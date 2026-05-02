@@ -1,1 +1,6 @@
-{"name": "crivox"}
+{
+  "name": "crivox",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
