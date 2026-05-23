@@ -56,8 +56,8 @@ const TemplatesPage = () => {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      const userTemplates: Template[] = (data ?? []).map((d: any) => ({
-        id: d.id, category: d.category, title: d.title, content: d.content, is_preset: d.is_preset,
+      const userTemplates: Template[] = (data ?? []).map((d) => ({
+        id: d.id, category: d.category, title: d.title, content: d.content, is_preset: d.is_preset ?? false,
       }));
 
       const userTitles = new Set(userTemplates.map((t) => t.title));

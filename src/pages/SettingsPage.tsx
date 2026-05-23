@@ -78,10 +78,7 @@ const SettingsPage = () => {
   const handleSaveMemory = async () => {
     if (!user) return;
     setSavingMemory(true);
-    console.log("Saving memory with user_id:", user.id);
-    console.log("Memory data:", memory);
-    
-    const { data, error } = await supabase.from("profiles").upsert({
+    const { error } = await supabase.from("profiles").upsert({
       user_id: user.id,
       full_name: memory.full_name || null,
       profession: memory.profession || null,
@@ -90,12 +87,9 @@ const SettingsPage = () => {
       use_case: memory.use_case || null,
       has_onboarded: true,
       updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" }).select();
-    
-    console.log("Upsert result:", { data, error });
+    }, { onConflict: "user_id" });
     
     if (error) {
-      console.error("Save memory error:", error);
       toast.error("Failed to save memory: " + error.message);
     } else {
       toast.success("Memory saved!");
@@ -326,13 +320,63 @@ const SettingsPage = () => {
           </div>
         </div>
 
-        {/* Sign out */}
-        <div className="bg-card border border-border rounded-xl shadow-sm p-5">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-foreground">Sign out</p>
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => { await signOut(); navigate("/", { replace: true }); }}>
-              <LogOut className="h-3.5 w-3.5" /> Sign out
-            </Button>
+        {/* Account */}
+        <div className={card}>
+          <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Trash2 className="h-4 w-4 text-red-400" /> Account
+          </h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-foreground">Sign out</p>
+                <p className="text-xs text-muted-foreground">Sign out of your account</p>
+              </div>
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={async () => { await signOut(); navigate("/", { replace: true }); }}>
+                <LogOut className="h-3.5 w-3.5" /> Sign out
+              </Button>
+            </div>
+            <div className="border-t border-border pt-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-foreground">Delete account</p>
+                  <p className="text-xs text-muted-foreground">Permanently delete your account and all data</p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-red-500">Delete</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-red-500" /> Delete account?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete your account, profile, comment history, templates, queue items, and shared comments. This cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-red-600 text-white hover:bg-red-700"
+                        onClick={async () => {
+                          if (!user) return;
+                          const { error } = await supabase.rpc("delete_user_account");
+                          if (error) {
+                            toast.error("Failed to delete account. Please contact support.");
+                          } else {
+                            await signOut();
+                            navigate("/", { replace: true });
+                            toast.success("Account deleted permanently.");
+                          }
+                        }}
+                      >
+                        Delete my account
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
           </div>
         </div>
       </div>

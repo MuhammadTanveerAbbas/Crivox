@@ -39,7 +39,7 @@ const StatsPage = () => {
         .order("created_at", { ascending: false })
         .limit(1000);
       if (!data) { setFetchError(true); setLoading(false); return; }
-      setItems(data.map((d: any) => ({ id: d.id, input_type: d.input_type, platform: d.platform, tone: d.tone, created_at: d.created_at })));
+      setItems(data.map((d) => ({ id: d.id, input_type: d.input_type, platform: d.platform, tone: d.tone, created_at: d.created_at })));
       setLoading(false);
     };
     fetch();

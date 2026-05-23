@@ -47,11 +47,18 @@ const HistoryPage = () => {
         .limit(200);
       if (error) { toast.error("Failed to load history"); }
       else {
-        setItems((data ?? []).map((d: any) => ({
-          ...d,
-          generated_comments: Array.isArray(d.generated_comments) ? d.generated_comments : [],
+        const mapped: HistoryItem[] = (data ?? []).map((d) => ({
+          id: d.id,
+          input_type: d.input_type,
+          input_content: d.input_content,
+          platform: d.platform,
+          tone: d.tone,
+          length: d.length,
+          generated_comments: Array.isArray(d.generated_comments) ? d.generated_comments as string[] : [],
+          created_at: d.created_at,
           is_favorite: d.is_favorite ?? false,
-        })));
+        }));
+        setItems(mapped);
       }
       setLoading(false);
     };

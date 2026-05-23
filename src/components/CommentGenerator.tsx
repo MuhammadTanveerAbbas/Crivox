@@ -87,27 +87,11 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
           if (data.default_language) setLanguage(data.default_language);
         }
       });
-  }, [user]);
-
-  const getInputContent = (): string => {
-    if (tab === "url") return url;
-    if (tab === "text") return text;
-    if (tab === "image" && imageFile) return "[Image uploaded]";
-    return "";
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onload = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
-  };
+  }, [user, prefill]);
 
   const handleGenerate = useCallback(async () => {
-    const content = getInputContent();
-    if (!content && tab !== "image") { toast.error("Please provide some content first"); return; }
+    const resolvedContent = tab === "url" ? url : tab === "text" ? text : tab === "image" && imageFile ? "[Image uploaded]" : "";
+    if (!resolvedContent && tab !== "image") { toast.error("Please provide some content first"); return; }
     if (tab === "image" && !imageFile) { toast.error("Please upload an image first"); return; }
 
     setLoading(true);
@@ -115,7 +99,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
 
     try {
       const generated = await generateComments({
-        content: tab === "image" ? "" : content,
+        content: tab === "image" ? "" : resolvedContent,
         image_base64: tab === "image" ? imagePreview ?? undefined : undefined,
         input_type: tab as "url" | "text" | "image",
         tone, length, platform, language,
@@ -127,16 +111,25 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
       setComments(generated);
       await supabase.from("comment_history").insert({
         user_id: user!.id, input_type: tab,
-        input_content: tab === "image" ? "[Image]" : content.slice(0, 500),
+        input_content: tab === "image" ? "[Image]" : resolvedContent.slice(0, 500),
         platform, tone, length, generated_comments: generated,
       });
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || "Failed to generate comments");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to generate comments";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   }, [tab, url, text, imageFile, imagePreview, tone, length, platform, language, includeEmoji, includeHashtags, includeCTA, commentCount, user]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -153,9 +146,9 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   const handleRegenerate = async (idx: number) => {
     setRegeneratingIdx(idx);
     try {
-      const content = getInputContent();
+      const resolvedContent = tab === "url" ? url : tab === "text" ? text : "";
       const generated = await generateComments({
-        content: tab === "image" ? "" : content,
+        content: tab === "image" ? "" : resolvedContent,
         image_base64: tab === "image" ? imagePreview ?? undefined : undefined,
         input_type: tab as "url" | "text" | "image",
         tone, length, platform, language,
@@ -208,9 +201,9 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
 
   const handleShare = async () => {
     try {
-      const content = getInputContent();
+      const resolvedContent = tab === "url" ? url : tab === "text" ? text : tab === "image" ? "[Image]" : "";
       const { data, error } = await supabase.from("shared_comments").insert({
-        user_id: user!.id, post_summary: content.slice(0, 500) || null,
+        user_id: user!.id, post_summary: resolvedContent.slice(0, 500) || null,
         comments, tone, platform,
       }).select("share_slug").single();
       if (error) throw error;

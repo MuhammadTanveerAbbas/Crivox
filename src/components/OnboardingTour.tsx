@@ -195,7 +195,7 @@ const OnboardingTour = ({ user }: OnboardingTourProps) => {
   }
 
   // Desktop: positioned tooltip next to highlighted element
-  let tooltipStyle: React.CSSProperties = { position: "fixed", zIndex: 10002 };
+  const tooltipStyle: React.CSSProperties = { position: "fixed", zIndex: 10002 };
   if (targetRect) {
     const tooltipWidth = 320;
     const spaceRight = window.innerWidth - targetRect.right;

@@ -30,7 +30,7 @@ export default async function handler(req: Request) {
 
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  const { error } = await supabase.from("users").select("id").limit(1).maybeSingle();
+  const { error } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {

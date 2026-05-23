@@ -27,7 +27,17 @@ const toneData = [
   { name: "Empathetic", value: 55, fill: "hsl(213 93% 80%)" },
 ];
 
-const CustomPieTooltip = ({ active, payload }: any) => {
+interface PieTooltipPayloadItem {
+  name: string;
+  value: number;
+}
+
+interface PieTooltipProps {
+  active?: boolean;
+  payload?: { name: string; value: number }[];
+}
+
+const CustomPieTooltip = ({ active, payload }: PieTooltipProps) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-xl px-3 py-2 shadow-md text-xs">
@@ -37,7 +47,7 @@ const CustomPieTooltip = ({ active, payload }: any) => {
   );
 };
 
-const CustomRadialTooltip = ({ active, payload }: any) => {
+const CustomRadialTooltip = ({ active, payload }: PieTooltipProps) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-card border border-border rounded-xl px-3 py-2 shadow-md text-xs">

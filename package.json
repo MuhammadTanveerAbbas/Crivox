@@ -5,6 +5,11 @@
   "version": "1.0.0",
   "author": "Muhammad Tanveer Abbas <https://themvpguy.vercel.app/>",
   "type": "module",
+  "pnpm": {
+    "overrides": {
+      "lodash": ">=4.17.24"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

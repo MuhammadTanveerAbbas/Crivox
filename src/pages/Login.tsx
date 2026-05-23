@@ -1,12 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
+import { Star, Mail, ArrowLeft } from "lucide-react";
 import CrivoxIcon from "@/components/CrivoxIcon";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { resetEmailSchema } from "@/lib/schemas";
 
 const Login = () => {
   const [signingIn, setSigningIn] = useState(false);
+  const [showEmailReset, setShowEmailReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [sendingReset, setSendingReset] = useState(false);
 
   const handleGoogleLogin = async () => {
     setSigningIn(true);
@@ -23,23 +28,99 @@ const Login = () => {
     }
   };
 
+  const handlePasswordReset = async () => {
+    const parsed = resetEmailSchema.safeParse({ email: resetEmail.trim() });
+    if (!parsed.success) {
+      const firstError = parsed.error.errors[0]?.message || "Enter a valid email address";
+      toast.error(firstError);
+      return;
+    }
+    setSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+        redirectTo: `${window.location.origin}/dashboard`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent! Check your email.");
+      setShowEmailReset(false);
+      setResetEmail("");
+    } catch {
+      toast.error("Failed to send reset email. Please try again.");
+    } finally {
+      setSendingReset(false);
+    }
+  };
+
+  if (showEmailReset) {
+    return (
+      <div className="min-h-screen flex">
+        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 flex-col justify-between p-8 lg:p-12 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-white -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-white translate-x-1/3 translate-y-1/3" />
+          </div>
+          <div className="relative flex items-center gap-2">
+            <CrivoxIcon size={32} />
+            <span className="font-display text-xl text-white">Crivox</span>
+          </div>
+          <div className="relative">
+            <p className="font-display text-3xl text-white leading-snug font-medium mb-6">
+              "Write better comments, in seconds."
+            </p>
+            <p className="text-blue-200 text-sm leading-relaxed max-w-xs">
+              AI-powered comment generation for every platform and tone.
+            </p>
+          </div>
+          <div className="relative" />
+        </div>
+        <div className="flex-1 flex items-center justify-center bg-background px-6 py-12 min-h-screen md:min-h-0">
+          <div className="w-full max-w-sm">
+            <div className="flex items-center gap-2 mb-8 md:hidden">
+              <CrivoxIcon size={28} />
+              <span className="font-display text-xl text-foreground">Crivox</span>
+            </div>
+            <button
+              onClick={() => setShowEmailReset(false)}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to sign in
+            </button>
+            <h1 className="text-2xl font-semibold text-foreground mb-1">Reset password</h1>
+            <p className="text-sm text-muted-foreground mb-8">Enter your email and we'll send you a reset link</p>
+            <div className="space-y-4">
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handlePasswordReset()}
+              />
+              <Button
+                className="w-full gap-2 bg-blue-600 text-white rounded-xl h-11 font-medium"
+                onClick={handlePasswordReset}
+                disabled={sendingReset}
+              >
+                <Mail className="h-4 w-4" />
+                {sendingReset ? "Sending..." : "Send Reset Link"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex">
-      {/* Left decorative panel */}
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 flex-col justify-between p-8 lg:p-12 relative overflow-hidden">
-        {/* Subtle pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-white -translate-x-1/2 -translate-y-1/2" />
           <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-white translate-x-1/3 translate-y-1/3" />
         </div>
-
-        {/* Logo */}
         <div className="relative flex items-center gap-2">
           <CrivoxIcon size={32} />
           <span className="font-display text-xl text-white">Crivox</span>
         </div>
-
-        {/* Quote */}
         <div className="relative">
           <p className="font-display text-3xl text-white leading-snug font-medium mb-6">
             "Write better comments, in seconds."
@@ -48,8 +129,6 @@ const Login = () => {
             AI-powered comment generation for every platform and tone. Join thousands of professionals saving hours every week.
           </p>
         </div>
-
-        {/* Social proof */}
         <div className="relative">
           <div className="flex items-center gap-3">
             <div className="flex -space-x-2">
@@ -73,19 +152,14 @@ const Login = () => {
           </div>
         </div>
       </div>
-
-      {/* Right form panel */}
       <div className="flex-1 flex items-center justify-center bg-background px-6 py-12 min-h-screen md:min-h-0">
         <div className="w-full max-w-sm">
-          {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 md:hidden">
             <CrivoxIcon size={28} />
             <span className="font-display text-xl text-foreground">Crivox</span>
           </div>
-
           <h1 className="text-2xl font-semibold text-foreground mb-1">Welcome back</h1>
           <p className="text-sm text-muted-foreground mb-8">Sign in to your Crivox account</p>
-
           <Button
             className="w-full gap-3 bg-background border border-border text-foreground hover:bg-accent rounded-xl h-11 font-medium shadow-sm transition-all duration-150"
             variant="outline"
@@ -101,7 +175,14 @@ const Login = () => {
             </svg>
             {signingIn ? "Signing in..." : "Continue with Google"}
           </Button>
-
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setShowEmailReset(true)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Forgot password?
+            </button>
+          </div>
           <p className="text-center text-xs text-muted-foreground mt-6">
             By continuing, you agree to our{" "}
             <span className="text-foreground hover:text-foreground/80 cursor-pointer transition-colors">Terms of Service</span>
