@@ -19,6 +19,8 @@ import { generateComments } from "@/lib/groq";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
+const lengths = ["Short", "Medium", "Long", "AI Decides"] as const;
+
 const tones = [
   { label: "Professional", icon: Briefcase },
   { label: "Casual", icon: Coffee },
@@ -51,6 +53,7 @@ const BulkGeneratePage = () => {
   const { user } = useAuth();
   const [rows, setRows] = useState<BulkRow[]>([{ id: rowIdCounter++, type: "text", content: "", loading: false, comments: [] }]);
   const [tone, setTone] = useState("Professional");
+  const [length, setLength] = useState("Medium");
   const [platform, setPlatform] = useState("LinkedIn");
   const [language, setLanguage] = useState("en");
   const [includeEmoji, setIncludeEmoji] = useState(false);
@@ -73,13 +76,13 @@ const BulkGeneratePage = () => {
     await Promise.all(validRows.map(async (row) => {
       try {
           const comments = await generateComments({
-            content: row.content, tone, platform, length: "Medium", language,
+            content: row.content, tone, platform, length, language,
             input_type: row.type,
             include_emoji: includeEmoji, include_hashtags: includeHashtags, include_cta: includeCTA,
             userId: user?.id,
           });
           updateRow(row.id, { comments, loading: false });
-          await supabase.from("comment_history").insert({ user_id: user!.id, input_type: row.type, input_content: row.content.slice(0, 500), platform, tone, length: "Medium", generated_comments: comments });
+          await supabase.from("comment_history").insert({ user_id: user!.id, input_type: row.type, input_content: row.content.slice(0, 500), platform, tone, length, generated_comments: comments });
       } catch { updateRow(row.id, { loading: false }); toast.error("Failed to generate for row"); }
     }));
     toast.success("All done!");
@@ -137,6 +140,20 @@ const BulkGeneratePage = () => {
                     tone === t.label ? "bg-blue-600 text-white border-blue-600" : "bg-card text-foreground border-border hover:bg-accent"
                   )}>
                   <t.icon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{t.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Length</label>
+            <div className="flex flex-wrap gap-1.5">
+              {lengths.map((l) => (
+                <button key={l} onClick={() => setLength(l)}
+                  className={cn("px-3 py-1.5 rounded-full text-sm border",
+                    length === l ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-card text-foreground border-border hover:bg-accent"
+                  )}>
+                  {l}
                 </button>
               ))}
             </div>
