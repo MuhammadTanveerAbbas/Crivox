@@ -9,6 +9,126 @@ const corsHeaders = {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// ── Model Configuration ────────────────────────────────────────────────────
+// All models are configurable via env vars so you NEVER need to change code.
+//
+//   GROQ_MODEL              = primary text generation model (default: llama-3.3-70b-versatile)
+//   GROQ_FALLBACK_MODELS    = comma-separated fallbacks if primary is removed (default below)
+//   GROQ_VISION_MODEL       = primary vision/OCR model (default: meta-llama/llama-4-scout-17b-16e-instruct)
+//   GROQ_VISION_FALLBACKS   = comma-separated fallbacks for vision (default below)
+//
+// If a model returns 404/model_not_found, the next fallback is tried automatically.
+// If ALL models fail, a clear error lists which models were tried.
+
+interface ModelConfig {
+  primary: string;
+  fallbacks: string[];
+}
+
+function getModelConfig(
+  envKey: string,
+  fallbackEnvKey: string,
+  defaultPrimary: string,
+  defaultFallbacks: string[],
+): ModelConfig {
+  const primary = Deno.env.get(envKey) || defaultPrimary;
+  const fallbackStr = Deno.env.get(fallbackEnvKey) || "";
+  const fallbacks = fallbackStr
+    ? fallbackStr.split(",").map((s) => s.trim()).filter(Boolean)
+    : defaultFallbacks;
+  return { primary, fallbacks };
+}
+
+function getAllModels(config: ModelConfig): string[] {
+  return [config.primary, ...config.fallbacks];
+}
+
+function tryParseJson(text: string): Record<string, unknown> | null {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+function isModelNotFound(bodyText: string, status: number): boolean {
+  if (status === 404) return true;
+  const parsed = tryParseJson(bodyText);
+  if (!parsed) return false;
+  const err = parsed.error as Record<string, unknown> | undefined;
+  if (!err) return false;
+  return (
+    err.code === "model_not_found" ||
+    String(err.message ?? "").includes("model_not_found") ||
+    String(err.code ?? "").includes("not_found")
+  );
+}
+
+async function callGroqWithFallback(
+  baseUrl: string,
+  apiKey: string,
+  config: ModelConfig,
+  bodyFn: (model: string) => Record<string, unknown>,
+  signal: AbortSignal,
+  label: string,
+): Promise<{ data: Record<string, unknown>; model: string }> {
+  const models = getAllModels(config);
+  const errors: { model: string; reason: string }[] = [];
+
+  for (const model of models) {
+    try {
+      const response = await fetch(baseUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bodyFn(model)),
+        signal,
+      });
+
+      if (response.ok) {
+        const data = await response.json() as Record<string, unknown>;
+        return { data, model };
+      }
+
+      const bodyText = await response.text().catch(() => "");
+
+      if (response.status === 429) {
+        const err = new Error("AI service is busy. Please wait a moment and try again.");
+        (err as any).statusCode = 429;
+        throw err;
+      }
+
+      if (isModelNotFound(bodyText, response.status)) {
+        errors.push({ model, reason: "model not available (removed/deprecated)" });
+        continue;
+      }
+
+      throw new Error(
+        `${label} failed (${response.status}): ${bodyText.slice(0, 300)}`,
+      );
+    } catch (err: any) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      if (err.statusCode === 429) throw err;
+      if (err instanceof TypeError && String(err.message ?? "").includes("fetch")) {
+        errors.push({ model, reason: "network error" });
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  const detail = errors
+    .map((e, i) => `  ${i + 1}. "${e.model}" — ${e.reason}`)
+    .join("\n");
+
+  throw new Error(
+    `All AI models failed for ${label}.\nTried:\n${detail}\n\n`
+    + "Please try again later or contact support if this persists.",
+  );
+}
+
 const languageNames: Record<string, string> = {
   en: "English", es: "Spanish", fr: "French", de: "German",
   pt: "Portuguese", hi: "Hindi", ar: "Arabic", zh: "Chinese", ja: "Japanese",
@@ -411,15 +531,21 @@ async function extractImageText(
   imageBase64: string,
   groqApiKey: string,
   groqBaseUrl: string,
+  signal: AbortSignal,
 ): Promise<string> {
-  const response = await fetch(groqBaseUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${groqApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "meta-llama/llama-4-scout-17b-16e-instruct",
+  const visionConfig = getModelConfig(
+    "GROQ_VISION_MODEL",
+    "GROQ_VISION_FALLBACKS",
+    "meta-llama/llama-4-scout-17b-16e-instruct",
+    ["meta-llama/llama-4-scout-17b-16e-instruct", "qwen/qwen3-32b"],
+  );
+
+  const { data } = await callGroqWithFallback(
+    groqBaseUrl,
+    groqApiKey,
+    visionConfig,
+    (model) => ({
+      model,
       messages: [
         {
           role: "user",
@@ -435,17 +561,11 @@ async function extractImageText(
         },
       ],
     }),
-  });
+    signal,
+    "Image OCR",
+  );
 
-  if (!response.ok) {
-    const body = await response.text().catch(() => "");
-    throw new Error(
-      `Image analysis failed (${response.status}). Please try again or use the Text tab.`,
-    );
-  }
-
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content || "";
+  const text = (data.choices as any)?.[0]?.message?.content || "";
   if (!text) throw new Error("Could not extract text from the image. Try a clearer screenshot.");
   return text;
 }
@@ -683,6 +803,10 @@ serve(async (req) => {
     const commentCount = single === "true" ? 1 : Math.min(Math.max(Number(count) || 3, 1), 5);
     let postContent = (content || "").trim();
 
+    // ── Single AbortController for all Groq calls (OCR + generation) ──
+    const groqController = new AbortController();
+    const groqTimeout = setTimeout(() => groqController.abort(), 45_000);
+
     // ── URL Mode: Actually fetch the URL content ──
     if (input_type === "url") {
       if (!postContent) {
@@ -694,10 +818,11 @@ serve(async (req) => {
 
     // ── Image Mode: Extract text via OCR ──
     if (input_type === "image" && image_base64) {
-      postContent = await extractImageText(image_base64, GROQ_API_KEY, GROQ_BASE_URL);
+      postContent = await extractImageText(image_base64, GROQ_API_KEY, GROQ_BASE_URL, groqController.signal);
     }
 
     if (!postContent) {
+      clearTimeout(groqTimeout);
       return new Response(
         JSON.stringify({ error: "No content to generate comments for. Please provide text, a URL, or an image." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -722,44 +847,33 @@ serve(async (req) => {
       variationNumber: variation_number || null,
     });
 
-    // ── Call Groq API ──
-    const groqController = new AbortController();
-    const groqTimeout = setTimeout(() => groqController.abort(), 30_000);
+    // ── Call Groq API with automatic model fallback ──
+    // If the primary model returns 404/model_not_found, next fallback is tried automatically.
+    const textConfig = getModelConfig(
+      "GROQ_MODEL",
+      "GROQ_FALLBACK_MODELS",
+      "llama-3.3-70b-versatile",
+      ["llama-3.1-8b-instant", "openai/gpt-oss-20b", "qwen/qwen3-32b"],
+    );
 
-    const groqResponse = await fetch(GROQ_BASE_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "moonshotai/kimi-k2-instruct",
+    const { data: groqData } = await callGroqWithFallback(
+      GROQ_BASE_URL,
+      GROQ_API_KEY,
+      textConfig,
+      (model) => ({
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Here is the post content to comment on:\n\n${postContent}` },
         ],
       }),
-      signal: groqController.signal,
-    });
+      groqController.signal,
+      "Comment generation",
+    );
 
     clearTimeout(groqTimeout);
 
-    if (!groqResponse.ok) {
-      if (groqResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "AI service is busy. Please wait a moment and try again." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      const groqBody = await groqResponse.text().catch(() => "");
-      throw new Error(
-        `AI generation failed (${groqResponse.status}). Please try again.`
-        + (groqBody ? ` Details: ${groqBody.slice(0, 200)}` : ""),
-      );
-    }
-
-    const groqData = await groqResponse.json();
-    const rawOutput = groqData.choices?.[0]?.message?.content || "";
+    const rawOutput = (groqData.choices as any)?.[0]?.message?.content || "";
 
     if (!rawOutput) {
       throw new Error("AI returned an empty response. Please try again.");
@@ -779,10 +893,12 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
-    const message = e instanceof Error ? e.message : "An unexpected error occurred. Please try again.";
+    const err = e as any;
+    const message = err instanceof Error ? err.message : "An unexpected error occurred. Please try again.";
+    const status = err.statusCode === 429 ? 429 : 500;
     return new Response(
       JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
