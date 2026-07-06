@@ -44,7 +44,7 @@ export const ComparisonTable = () => (
           <TableHeader>
             <TableRow className="bg-muted hover:bg-muted">
               <TableHead className="text-foreground font-medium text-xs min-w-[140px] py-4">Feature</TableHead>
-              <TableHead className="text-center text-xs font-semibold text-white bg-blue-600 py-4 min-w-[80px]">Crivox</TableHead>
+              <TableHead className="text-center text-xs font-semibold text-white bg-primary py-4 min-w-[80px]">Crivox</TableHead>
               <TableHead className="text-center text-xs font-medium text-muted-foreground py-4 min-w-[80px]">Manual</TableHead>
               <TableHead className="text-center text-xs font-medium text-muted-foreground py-4 min-w-[90px]">Generic AI</TableHead>
             </TableRow>

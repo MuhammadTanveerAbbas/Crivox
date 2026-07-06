@@ -208,7 +208,7 @@ export default function PricingPage() {
                       "w-full rounded-xl font-medium transition-all duration-200",
                       plan.featured
                         ? "bg-violet-600 hover:bg-violet-700 text-white shadow-sm cursor-not-allowed opacity-70"
-                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                        : "bg-primary hover:bg-primary/90 text-primary-foreground"
                     )}
                     onClick={() => !plan.comingSoon && navigate("/login")}
                   >
@@ -247,7 +247,7 @@ export default function PricingPage() {
           {[
             { feature: "Comment variations", free: "3", pro: "5" },
             { feature: "Tone styles", free: "8", pro: "8" },
-            { feature: "Platforms", free: "6", pro: "9" },
+            { feature: "Platforms", free: "6", pro: "6" },
             { feature: "Languages", free: "English only", pro: "9 languages" },
             { feature: "Bulk generation", free: "", pro: "Up to 5 posts" },
             { feature: "Templates & queue", free: "", pro: "✓" },
@@ -297,7 +297,7 @@ export default function PricingPage() {
               We're putting the finishing touches on Pro. Start with Free today and we'll let you know the moment it launches.
             </p>
             <Button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium"
               onClick={() => navigate("/login")}
             >
               Get Started Free

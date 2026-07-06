@@ -1,6 +1,6 @@
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ const plans = [
     period: "forever",
     description: "Try it out, no commitment",
     featured: false,
+    comingSoon: false,
     features: [
       "Up to 3 comment variations",
       "8 tone styles",
@@ -26,6 +27,7 @@ const plans = [
     period: "per month",
     description: "For people who comment regularly",
     featured: true,
+    comingSoon: true,
     features: [
       "Up to 5 comment variations",
       "8 tone styles",
@@ -34,7 +36,7 @@ const plans = [
       "Templates & queue",
       "Full comment history",
     ],
-    cta: "Upgrade to Pro",
+    cta: "Coming Soon",
   },
 ];
 
@@ -49,7 +51,7 @@ export const PricingSection = () => {
             Simple pricing
           </h2>
           <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Start free, upgrade when you need more.
+            Start free today. Pro is in development — we will announce it when it launches.
           </p>
         </ScrollReveal>
 
@@ -58,12 +60,19 @@ export const PricingSection = () => {
             <StaggerItem key={plan.name}>
               <div
                 className={cn(
-                  "bg-card rounded-2xl p-6 sm:p-8 h-full flex flex-col transition-all duration-200",
+                  "relative bg-card rounded-2xl p-6 sm:p-8 h-full flex flex-col transition-all duration-200",
                   plan.featured
-                    ? "border-2 border-blue-500 shadow-lg scale-[1.02]"
+                    ? "border-2 border-blue-500 shadow-lg"
                     : "border border-border shadow-sm"
                 )}
               >
+                {plan.comingSoon && (
+                  <span className="absolute top-4 right-4 flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-200 dark:border-amber-800">
+                    <Clock className="h-3 w-3" />
+                    Coming Soon
+                  </span>
+                )}
+
                 <h3 className="font-display text-2xl font-medium text-foreground">{plan.name}</h3>
                 <div className="mt-3 mb-1 flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-foreground">{plan.price}</span>
@@ -81,15 +90,23 @@ export const PricingSection = () => {
                 </ul>
 
                 <Button
+                  disabled={plan.comingSoon}
                   className={cn(
-                    "w-full rounded-xl font-medium",
+                    "w-full rounded-xl font-medium min-h-[44px]",
                     plan.featured
-                      ? "bg-blue-600 text-white shadow-sm"
+                      ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-70"
                       : "bg-card border border-border text-foreground hover:bg-accent"
                   )}
-                  onClick={() => navigate("/login")}
+                  onClick={() => !plan.comingSoon && navigate("/login")}
                 >
-                  {plan.cta}
+                  {plan.comingSoon ? (
+                    <span className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      {plan.cta}
+                    </span>
+                  ) : (
+                    plan.cta
+                  )}
                 </Button>
               </div>
             </StaggerItem>

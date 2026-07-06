@@ -87,7 +87,7 @@ const OnboardingQuestionnaire = ({ user, onComplete }: OnboardingQuestionnairePr
 
   const handleSubmit = async () => {
     setSaving(true);
-    const { error } = await supabase.from("profiles").upsert({
+    await supabase.from("profiles").upsert({
       user_id: user.id,
       full_name: formData.full_name || null,
       profession: formData.profession || null,
@@ -103,6 +103,8 @@ const OnboardingQuestionnaire = ({ user, onComplete }: OnboardingQuestionnairePr
   };
 
   const currentQuestion = questions[currentStep];
+  if (!currentQuestion) return null;
+
   const Icon = currentQuestion.icon;
   const currentValue = formData[currentQuestion.key as keyof FormData];
   const isLastStep = currentStep === questions.length - 1;
@@ -148,11 +150,11 @@ const OnboardingQuestionnaire = ({ user, onComplete }: OnboardingQuestionnairePr
               </Button>
             )}
             {isLastStep ? (
-              <Button size="sm" onClick={handleSubmit} disabled={saving} className="bg-blue-600 text-white">
+              <Button size="sm" onClick={handleSubmit} disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {saving ? "Saving..." : "Complete"}
               </Button>
             ) : (
-              <Button size="sm" onClick={handleNext} className="bg-blue-600 text-white">
+              <Button size="sm" onClick={handleNext} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 Next <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             )}

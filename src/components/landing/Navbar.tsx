@@ -59,7 +59,7 @@ export const Navbar = () => {
           <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => navigate("/login")}>
             Log in
           </Button>
-          <Button size="sm" className="bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-medium" onClick={() => navigate("/login")}>
+          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 text-sm font-medium" onClick={() => navigate("/login")}>
             Get Started
           </Button>
         </div>
@@ -69,7 +69,7 @@ export const Navbar = () => {
           <ThemeToggle />
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-11 w-11 min-h-[44px] min-w-[44px]">
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
@@ -79,7 +79,7 @@ export const Navbar = () => {
                   <button
                     key={item.id}
                     onClick={() => handleNav(item)}
-                    className="text-left px-3 py-2.5 text-sm text-muted-foreground rounded-lg hover:text-foreground transition-colors"
+                    className="text-left px-3 py-3 min-h-[44px] text-sm text-muted-foreground rounded-lg hover:text-foreground transition-colors"
                   >
                     {item.label}
                   </button>
@@ -88,7 +88,7 @@ export const Navbar = () => {
                   <Button variant="outline" className="w-full rounded-xl" onClick={() => { navigate("/login"); setOpen(false); }}>
                     Log in
                   </Button>
-                  <Button className="w-full bg-blue-600 text-white rounded-xl" onClick={() => { navigate("/login"); setOpen(false); }}>
+                  <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl" onClick={() => { navigate("/login"); setOpen(false); }}>
                     Get Started
                   </Button>
                 </div>

@@ -15,6 +15,7 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { profileSchema, aiMemorySchema } from "@/lib/schemas";
 
 const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Other"] as const;
 const toneOptions = ["Professional", "Casual", "Witty", "Supportive", "Bold", "Educational", "Insightful", "Authoritative"] as const;
@@ -64,6 +65,16 @@ const SettingsPage = () => {
   }, [user]);
 
   const handleSaveProfile = async () => {
+    const result = profileSchema.safeParse({
+      display_name: displayName,
+      default_tone: defaultTone,
+      default_platform: defaultPlatform,
+      default_language: defaultLanguage,
+    });
+    if (!result.success) {
+      toast.error(result.error.errors[0]?.message || "Invalid input");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.from("profiles").upsert({
       user_id: user!.id, display_name: displayName,
@@ -77,6 +88,11 @@ const SettingsPage = () => {
 
   const handleSaveMemory = async () => {
     if (!user) return;
+    const result = aiMemorySchema.safeParse(memory);
+    if (!result.success) {
+      toast.error(result.error.errors[0]?.message || "Invalid input");
+      return;
+    }
     setSavingMemory(true);
     const { error } = await supabase.from("profiles").upsert({
       user_id: user.id,
@@ -176,7 +192,7 @@ const SettingsPage = () => {
               </Select>
             </div>
           </div>
-          <Button onClick={handleSaveProfile} disabled={saving} size="sm" className="gap-1.5 bg-blue-600 text-white">
+          <Button onClick={handleSaveProfile} disabled={saving} size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
             <Save className="h-3.5 w-3.5" /> {saving ? "Saving..." : "Save"}
           </Button>
         </div>
@@ -211,7 +227,7 @@ const SettingsPage = () => {
                 </div>
               ))}
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleSaveMemory} disabled={savingMemory} className="bg-blue-600 text-white">
+                <Button size="sm" onClick={handleSaveMemory} disabled={savingMemory} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   <Save className="h-3.5 w-3.5 mr-1" /> {savingMemory ? "Saving..." : "Save"}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => setEditingMemory(false)}>Cancel</Button>
@@ -243,7 +259,7 @@ const SettingsPage = () => {
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium flex-1 justify-center border",
                   theme === t.value
-                    ? "bg-blue-600 text-white border-blue-600"
+                    ? "bg-primary text-primary-foreground border-primary"
                     : "bg-card text-muted-foreground border-border hover:bg-accent"
                 )}
               >

@@ -41,7 +41,7 @@ export const HowItWorks = () => (
           <div className="text-center relative">
             <div className="relative inline-flex mb-5">
               <div className="h-14 w-14 rounded-2xl bg-card border border-border shadow-sm flex items-center justify-center">
-                <s.icon className="h-6 w-6 text-blue-600" />
+                <s.icon className="h-6 w-6 text-primary" />
               </div>
             </div>
             <div className="text-xs font-mono font-semibold text-blue-500 mb-2 tracking-wider">{s.step}</div>

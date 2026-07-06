@@ -67,7 +67,10 @@ const StatsPage = () => {
   const dailyData = useMemo(() => {
     const days: Record<string, number> = {};
     for (let i = 29; i >= 0; i--) { days[format(subDays(new Date(), i), "MMM dd")] = 0; }
-    items.forEach((item) => { const key = format(new Date(item.created_at), "MMM dd"); if (key in days) days[key]++; });
+    items.forEach((item) => {
+      const key = format(new Date(item.created_at), "MMM dd");
+      if (key in days) days[key] = (days[key] ?? 0) + 1;
+    });
     return Object.entries(days).map(([date, count]) => ({ date, count }));
   }, [items]);
 
@@ -122,7 +125,7 @@ const StatsPage = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {statCards.map((s) => (
                 <div key={s.label} className="bg-card border border-border rounded-2xl shadow-sm p-4 sm:p-5">
-                  <s.icon className="h-5 w-5 text-blue-600 mb-2" />
+                  <s.icon className="h-5 w-5 text-primary mb-2" />
                   <div className="text-xl sm:text-2xl font-bold text-foreground truncate">{s.value}</div>
                   <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
                 </div>

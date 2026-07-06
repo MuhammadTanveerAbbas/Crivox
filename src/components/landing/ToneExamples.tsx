@@ -29,6 +29,8 @@ const examples = [
 
 export const ToneExamples = () => {
   const [active, setActive] = useState(0);
+  const example = examples[active] ?? examples[0];
+  if (!example) return null;
 
   return (
     <section className="px-4 sm:px-6 py-16 sm:py-24 bg-muted/30">
@@ -51,7 +53,7 @@ export const ToneExamples = () => {
                 className={cn(
                   "flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150",
                   active === i
-                    ? "bg-blue-600 text-white shadow-sm"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "bg-card border border-border text-foreground hover:bg-accent"
                 )}
               >
@@ -71,13 +73,13 @@ export const ToneExamples = () => {
               className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm"
             >
               <div className="flex items-center gap-2 mb-4">
-                {(() => { const Icon = examples[active].Icon; return <Icon className="h-4 w-4 text-blue-500" />; })()}
-                <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
-                  {examples[active].tone}
+                {(() => { const Icon = example.Icon; return <Icon className="h-4 w-4 text-blue-500" />; })()}
+                <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                  {example.tone}
                 </span>
               </div>
               <p className="text-foreground leading-relaxed text-sm sm:text-base">
-                "{examples[active].text}"
+                "{example.text}"
               </p>
             </motion.div>
           </AnimatePresence>

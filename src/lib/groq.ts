@@ -16,29 +16,51 @@ export interface GenerateParams {
 }
 
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeUserInput, sanitizeModelOutput } from "@/lib/sanitize";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/generate-comments`;
-const REQUEST_TIMEOUT = 90_000; // 90 seconds (covers URL fetching + Groq API)
+const REQUEST_TIMEOUT = 90_000;
+const MAX_RETRIES = 2;
+
+async function fetchWithRetry(url: string, options: RequestInit, retries: number): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok || attempt === retries) return response;
+      if (response.status >= 400 && response.status < 500) return response;
+    } catch {
+      if (attempt === retries) throw new Error("Network error. Please check your connection.");
+      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+    }
+  }
+  throw new Error("Failed to reach the server. Please try again.");
+}
 
 export async function generateComments(params: GenerateParams): Promise<string[]> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
     throw new Error("You must be logged in to generate comments.");
   }
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new Error("Your session has expired. Please log in again.");
+  }
 
+  const sanitizedContent = sanitizeUserInput(params.content);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
   try {
-    const response = await fetch(EDGE_FUNCTION_URL, {
+    const response = await fetchWithRetry(EDGE_FUNCTION_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
+        "X-CSRF-Protected": "1",
       },
       body: JSON.stringify({
-        content: params.content,
+        content: sanitizedContent,
         image_base64: params.image_base64,
         input_type: params.input_type || "text",
         tone: params.tone,
@@ -53,13 +75,13 @@ export async function generateComments(params: GenerateParams): Promise<string[]
         variation_number: params.variation_number,
       }),
       signal: controller.signal,
-    });
+    }, MAX_RETRIES);
 
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      const errorMsg = (body as Record<string, unknown>)?.error as string;
+      const body: Record<string, unknown> = await response.json().catch(() => ({}));
+      const errorMsg = typeof body?.error === "string" ? body.error : undefined;
 
       if (response.status === 429) {
         throw new Error(errorMsg || "Too many requests. Please wait a moment and try again.");
@@ -77,7 +99,7 @@ export async function generateComments(params: GenerateParams): Promise<string[]
     if (!data.comments?.length) {
       throw new Error("No comments were generated. Please try again.");
     }
-    return data.comments;
+    return data.comments.map((c: string) => sanitizeModelOutput(c));
   } catch (error) {
     clearTimeout(timeoutId);
 

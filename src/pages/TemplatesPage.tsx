@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Plus, Trash2, ArrowRight, Search } from "lucide-react";
+import { Plus, Trash2, ArrowRight, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useNavigate } from "react-router-dom";
+import { templateSchema } from "@/lib/schemas";
 
 const CATEGORIES = ["Appreciation", "Question", "Insight", "Disagreement", "Encouragement", "Promotional"] as const;
 
@@ -38,6 +40,7 @@ interface Template {
 
 const TemplatesPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>("all");
@@ -78,7 +81,8 @@ const TemplatesPage = () => {
   });
 
   const handleSaveNew = async () => {
-    if (!newTitle.trim() || !newContent.trim()) { toast.error("Title and content are required"); return; }
+    const result = templateSchema.safeParse({ title: newTitle, content: newContent, category: newCategory });
+    if (!result.success) { toast.error(result.error.errors[0]?.message || "Invalid input"); return; }
     const { data, error } = await supabase.from("comment_templates")
       .insert({ user_id: user!.id, category: newCategory, title: newTitle, content: newContent })
       .select("id, category, title, content, is_preset").single();
@@ -98,8 +102,12 @@ const TemplatesPage = () => {
   };
 
   const handleUseTemplate = (content: string) => {
-    navigator.clipboard.writeText(content);
-    toast.success("Template copied! Paste it in the generator.");
+    const params = new URLSearchParams({
+      content: content,
+      input_type: "text",
+    });
+    navigate(`/dashboard?${params.toString()}`);
+    toast.success("Template loaded in generator!");
   };
 
   return (
@@ -112,7 +120,7 @@ const TemplatesPage = () => {
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-1.5 bg-blue-600 text-white self-start">
+              <Button size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 self-start">
                 <Plus className="h-3.5 w-3.5" /> New Template
               </Button>
             </DialogTrigger>
@@ -125,7 +133,7 @@ const TemplatesPage = () => {
                   <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                 </Select>
                 <Textarea placeholder="Template content..." value={newContent} onChange={(e) => setNewContent(e.target.value)} rows={4} className="text-sm" />
-                <Button onClick={handleSaveNew} className="w-full bg-blue-600 text-white">Save Template</Button>
+                <Button onClick={handleSaveNew} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Save Template</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -140,11 +148,11 @@ const TemplatesPage = () => {
           <div className="flex flex-wrap gap-1.5">
             <button
               onClick={() => setActiveCategory("all")}
-              className={cn("px-3 py-1.5 rounded-full text-xs font-medium", activeCategory === "all" ? "bg-blue-600 text-white" : "bg-accent text-muted-foreground")}
+              className={cn("px-3 py-1.5 rounded-full text-xs font-medium", activeCategory === "all" ? "bg-primary text-primary-foreground shadow-sm" : "bg-accent text-muted-foreground")}
             >All</button>
             {CATEGORIES.map((c) => (
               <button key={c} onClick={() => setActiveCategory(c)}
-                className={cn("px-3 py-1.5 rounded-full text-xs font-medium", activeCategory === c ? "bg-blue-600 text-white" : "bg-accent text-muted-foreground")}
+                className={cn("px-3 py-1.5 rounded-full text-xs font-medium", activeCategory === c ? "bg-primary text-primary-foreground shadow-sm" : "bg-accent text-muted-foreground")}
               >{c}</button>
             ))}
           </div>
@@ -169,7 +177,7 @@ const TemplatesPage = () => {
                 <h3 className="font-semibold text-foreground text-sm mb-1">{t.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed flex-1 line-clamp-3">{t.content}</p>
                 <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border">
-                  <Button size="sm" variant="ghost" className="gap-1.5 text-blue-600" onClick={() => handleUseTemplate(t.content)}>
+                  <Button size="sm" variant="ghost" className="gap-1.5 text-primary" onClick={() => handleUseTemplate(t.content)}>
                     <ArrowRight className="h-3.5 w-3.5" /> Use
                   </Button>
                   {!t.id.startsWith("preset-") && (

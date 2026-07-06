@@ -9,7 +9,7 @@ export const CTASection = () => {
   return (
     <section className="px-4 sm:px-6 py-16 sm:py-24">
       <ScrollReveal className="max-w-4xl mx-auto">
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-8 sm:p-12 md:p-16 text-center shadow-xl">
+        <div className="bg-gradient-to-br from-primary to-primary/80 rounded-3xl p-8 sm:p-12 md:p-16 text-center shadow-xl">
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-medium text-white mb-4 tracking-tight">
             Ready to write better comments?
           </h2>

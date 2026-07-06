@@ -32,7 +32,7 @@ export const HeroSection = () => {
 
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight text-foreground leading-[1.08] mb-4 sm:mb-5">
               Write better comments,{" "}
-              <span className="text-blue-600">in seconds.</span>
+              <span className="text-primary">in seconds.</span>
             </h1>
 
             <p className="text-base sm:text-lg text-muted-foreground max-w-md leading-relaxed mb-7 sm:mb-8">
@@ -43,7 +43,7 @@ export const HeroSection = () => {
             <div className="flex flex-wrap gap-3 mb-8 sm:mb-10">
               <Button
                 size="lg"
-                className="bg-blue-600 text-white rounded-xl px-5 sm:px-6 font-medium shadow-sm"
+                className="bg-primary text-primary-foreground rounded-xl px-5 sm:px-6 font-medium shadow-sm hover:bg-primary/90"
                 onClick={() => navigate("/login")}
               >
                 Start for free <ArrowRight className="h-4 w-4 ml-1.5" />
@@ -60,7 +60,7 @@ export const HeroSection = () => {
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
               {[
-                { icon: Zap, text: "Up to 5 variations per generation" },
+                { icon: Zap, text: "Up to 3 variations free" },
                 { icon: Shield, text: "Free to start" },
                 { icon: Clock, text: "Results in seconds" },
               ].map(({ icon: Icon, text }) => (
@@ -105,7 +105,7 @@ export const HeroSection = () => {
                     transition={{ duration: 0.4, delay: 0.4 + i * 0.1 }}
                     className="flex items-start gap-2 sm:gap-3 p-3 sm:p-3.5 rounded-xl bg-muted border border-border hover:shadow-sm transition-all duration-200"
                   >
-                    <span className="text-xs font-semibold text-blue-600 mt-0.5 shrink-0 w-4">{i + 1}</span>
+                    <span className="text-xs font-semibold text-primary mt-0.5 shrink-0 w-4">{i + 1}</span>
                     <p className="text-xs text-foreground leading-relaxed flex-1 min-w-0">{text}</p>
                     <Copy className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0 hover:text-foreground cursor-pointer transition-colors" />
                   </motion.div>
@@ -117,7 +117,7 @@ export const HeroSection = () => {
                 {["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit" ].map((p, i) => (
                   <span
                     key={p}
-                    className={`text-xs px-2.5 py-1 rounded-full font-medium ${i === 0 ? "bg-blue-600 text-white" : "bg-muted text-muted-foreground"}`}
+                    className={`text-xs px-2.5 py-1 rounded-full font-medium ${i === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
                   >
                     {p}
                   </span>

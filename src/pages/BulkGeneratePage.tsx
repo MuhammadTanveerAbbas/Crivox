@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
-  Plus, Trash2, Sparkles, Copy, Check, Download, X,
+  Plus, Sparkles, Copy, Check, Download, X,
   Briefcase, Coffee, Laugh, Heart, Flame, GraduationCap, Lightbulb, Shield,
   Hash, SmilePlus, MousePointerClick, Languages, CopyPlus,
 } from "lucide-react";
@@ -73,19 +73,24 @@ const BulkGeneratePage = () => {
     const validRows = rows.filter((r) => r.content.trim());
     if (validRows.length === 0) { toast.error("Add at least one post"); return; }
     setRows((prev) => prev.map((r) => r.content.trim() ? { ...r, loading: true, comments: [] } : r));
-    await Promise.all(validRows.map(async (row) => {
+    let allSucceeded = true;
+    for (const row of validRows) {
       try {
-          const comments = await generateComments({
-            content: row.content, tone, platform, length, language,
-            input_type: row.type,
-            include_emoji: includeEmoji, include_hashtags: includeHashtags, include_cta: includeCTA,
-            userId: user?.id,
-          });
-          updateRow(row.id, { comments, loading: false });
-          await supabase.from("comment_history").insert({ user_id: user!.id, input_type: row.type, input_content: row.content.slice(0, 500), platform, tone, length, generated_comments: comments });
-      } catch { updateRow(row.id, { loading: false }); toast.error("Failed to generate for row"); }
-    }));
-    toast.success("All done!");
+        const comments = await generateComments({
+          content: row.content, tone, platform, length, language,
+          input_type: row.type,
+          include_emoji: includeEmoji, include_hashtags: includeHashtags, include_cta: includeCTA,
+          userId: user?.id,
+        });
+        setRows((prev) => prev.map((r) => r.id === row.id ? { ...r, comments, loading: false } : r));
+        await supabase.from("comment_history").insert({ user_id: user!.id, input_type: row.type, input_content: row.content.slice(0, 500), platform, tone, length, generated_comments: comments });
+      } catch {
+        setRows((prev) => prev.map((r) => r.id === row.id ? { ...r, loading: false } : r));
+        toast.error(`Failed to generate for post ${row.id}`);
+        allSucceeded = false;
+      }
+    }
+    if (allSucceeded) toast.success("All done!");
   };
 
   const handleCopy = async (text: string, id: string) => {
@@ -137,7 +142,7 @@ const BulkGeneratePage = () => {
               {tones.map((t) => (
                 <button key={t.label} onClick={() => setTone(t.label)}
                   className={cn("flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-medium border",
-                    tone === t.label ? "bg-blue-600 text-white border-blue-600" : "bg-card text-foreground border-border hover:bg-accent"
+                    tone === t.label ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border hover:bg-accent"
                   )}>
                   <t.icon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{t.label}</span>
                 </button>
@@ -151,7 +156,7 @@ const BulkGeneratePage = () => {
               {lengths.map((l) => (
                 <button key={l} onClick={() => setLength(l)}
                   className={cn("px-3 py-1.5 rounded-full text-sm border",
-                    length === l ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-card text-foreground border-border hover:bg-accent"
+                    length === l ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-card text-foreground border-border hover:bg-accent"
                   )}>
                   {l}
                 </button>
@@ -233,10 +238,10 @@ const BulkGeneratePage = () => {
                   </div>
                   {row.comments.map((c, ci) => (
                     <div key={ci} className="flex items-start gap-2 bg-accent rounded-lg p-3">
-                      <span className="text-xs font-semibold text-blue-600 shrink-0 mt-0.5">#{ci + 1}</span>
+                      <span className="text-xs font-semibold text-primary shrink-0 mt-0.5">#{ci + 1}</span>
                       <p className="flex-1 text-sm text-foreground whitespace-pre-wrap">{c}</p>
                       <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => handleCopy(c, `${row.id}-${ci}`)}>
-                        {copiedId === `${row.id}-${ci}` ? <Check className="h-3.5 w-3.5 text-blue-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                        {copiedId === `${row.id}-${ci}` ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                       </Button>
                     </div>
                   ))}
@@ -252,7 +257,7 @@ const BulkGeneratePage = () => {
           </Button>
         )}
 
-        <Button className="w-full gap-2 bg-blue-600 text-white" size="lg" onClick={generateAll} disabled={anyLoading}>
+        <Button className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90" size="lg" onClick={generateAll} disabled={anyLoading}>
           <Sparkles className="h-4 w-4" />
           {anyLoading ? "Generating..." : "Generate All"}
         </Button>

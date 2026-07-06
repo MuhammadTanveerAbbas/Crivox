@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { queueItemSchema } from "@/lib/schemas";
 
 interface QueueItem {
   id: string;
@@ -37,6 +38,7 @@ const QueuePage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [newPlatform, setNewPlatform] = useState("LinkedIn");
+  const [newTone, setNewTone] = useState("Professional");
   const [newNotes, setNewNotes] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
@@ -71,15 +73,22 @@ const QueuePage = () => {
   }, [filtered]);
 
   const handleAdd = async () => {
-    if (!newComment.trim()) { toast.error("Comment text is required"); return; }
+    const result = queueItemSchema.safeParse({
+      comment_text: newComment,
+      platform: newPlatform,
+      notes: newNotes || null,
+      scheduled_date: newDate || null,
+      scheduled_time: newTime || null,
+    });
+    if (!result.success) { toast.error(result.error.errors[0]?.message || "Invalid input"); return; }
     const { data, error } = await supabase.from("comment_queue").insert({
-      user_id: user!.id, comment_text: newComment, platform: newPlatform, tone: "Professional",
+      user_id: user!.id, comment_text: newComment, platform: newPlatform, tone: newTone,
       notes: newNotes || null, scheduled_date: newDate || null, scheduled_time: newTime || null,
     }).select().single();
     if (error) toast.error("Failed to add to queue");
     else {
       setItems((prev) => [data as QueueItem, ...prev]);
-      setNewComment(""); setNewNotes(""); setNewDate(""); setNewTime("");
+      setNewComment(""); setNewNotes(""); setNewDate(""); setNewTime(""); setNewTone("Professional");
       setDialogOpen(false); toast.success("Added to queue!");
     }
   };
@@ -124,7 +133,7 @@ const QueuePage = () => {
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-1.5 bg-blue-600 text-white self-start">
+              <Button size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 self-start">
                 <Plus className="h-3.5 w-3.5" /> Add to Queue
               </Button>
             </DialogTrigger>
@@ -132,10 +141,26 @@ const QueuePage = () => {
               <DialogHeader><DialogTitle className="text-foreground">Add to Queue</DialogTitle></DialogHeader>
               <div className="space-y-3 mt-2">
                 <Textarea placeholder="Paste your comment here..." value={newComment} onChange={(e) => setNewComment(e.target.value)} rows={4} className="text-sm" />
-                <Select value={newPlatform} onValueChange={setNewPlatform}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{platforms.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-foreground mb-1 block">Platform</label>
+                    <Select value={newPlatform} onValueChange={setNewPlatform}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{platforms.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-foreground mb-1 block">Tone</label>
+                    <Select value={newTone} onValueChange={setNewTone}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["Professional", "Casual", "Witty", "Supportive", "Bold", "Educational", "Insightful", "Authoritative"].map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <Input placeholder="Notes (optional)" value={newNotes} onChange={(e) => setNewNotes(e.target.value)} />
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -147,7 +172,7 @@ const QueuePage = () => {
                     <Input type="time" value={newTime} onChange={(e) => setNewTime(e.target.value)} />
                   </div>
                 </div>
-                <Button onClick={handleAdd} className="w-full bg-blue-600 text-white">Add to Queue</Button>
+                <Button onClick={handleAdd} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Add to Queue</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -156,7 +181,7 @@ const QueuePage = () => {
         <div className="flex flex-wrap gap-2">
           {filterBtns.map((f) => (
             <button key={f.value} onClick={() => setFilterStatus(f.value)}
-              className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap", filterStatus === f.value ? "bg-blue-600 text-white" : "bg-accent text-muted-foreground")}
+              className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap", filterStatus === f.value ? "bg-primary text-primary-foreground shadow-sm" : "bg-accent text-muted-foreground")}
             >{f.label}</button>
           ))}
         </div>
@@ -189,7 +214,7 @@ const QueuePage = () => {
                 <div className="flex items-start gap-3">
                   <button onClick={() => handleToggleStatus(item)} className="mt-0.5 shrink-0">
                     {item.status === "posted"
-                      ? <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                      ? <CheckCircle2 className="h-5 w-5 text-primary" />
                       : <Circle className="h-5 w-5 text-muted-foreground" />}
                   </button>
                   <div className="flex-1 min-w-0">
@@ -211,7 +236,7 @@ const QueuePage = () => {
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy(item.comment_text, item.id)}>
-                      {copiedId === item.id ? <Check className="h-3.5 w-3.5 text-blue-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                      {copiedId === item.id ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => handleDelete(item.id)}>
                       <Trash2 className="h-3.5 w-3.5" />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -75,6 +75,11 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
+  const genRef = useRef<() => Promise<void>>(async () => {});
+  const loadingRef = useRef(false);
+  const hasCommentsRef = useRef(false);
+  const isEditingRef = useRef<number | null>(null);
+  const commentsRef = useRef<string[]>([]);
 
   useEffect(() => {
     if (!user || prefill) return;
@@ -122,6 +127,11 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
     }
   }, [tab, url, text, imageFile, imagePreview, tone, length, platform, language, includeEmoji, includeHashtags, includeCTA, commentCount, user]);
 
+  useEffect(() => { genRef.current = handleGenerate; }, [handleGenerate]);
+  useEffect(() => { loadingRef.current = loading; }, [loading]);
+  useEffect(() => { hasCommentsRef.current = comments.length > 0; commentsRef.current = comments; }, [comments]);
+  useEffect(() => { isEditingRef.current = editingIdx; }, [editingIdx]);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -133,15 +143,15 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !loading) { e.preventDefault(); handleGenerate(); }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "C" && comments.length > 0) {
-        e.preventDefault(); navigator.clipboard.writeText(comments[0]); toast.success("First comment copied!");
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !loadingRef.current) { e.preventDefault(); genRef.current(); }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "C" && commentsRef.current.length > 0) {
+        e.preventDefault(); navigator.clipboard.writeText(commentsRef.current[0]!); toast.success("First comment copied!");
       }
-      if (e.key === "Escape" && comments.length > 0 && editingIdx === null) setComments([]);
+      if (e.key === "Escape" && commentsRef.current.length > 0 && isEditingRef.current === null) setComments([]);
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [handleGenerate, loading, comments, editingIdx]);
+  }, []);
 
   const handleRegenerate = async (idx: number) => {
     setRegeneratingIdx(idx);
@@ -155,8 +165,9 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
         include_emoji: includeEmoji, include_hashtags: includeHashtags, include_cta: includeCTA,
         single: true, variation_number: idx + 1, userId: user?.id,
       });
-      if (generated[0]) {
-        setComments((prev) => prev.map((c, i) => (i === idx ? generated[0] : c)));
+      const replacement = generated[0];
+      if (replacement) {
+        setComments((prev) => prev.map((c, i) => (i === idx ? replacement : c)));
         toast.success("Comment regenerated!");
       }
     } catch { toast.error("Failed to regenerate"); }
@@ -263,7 +274,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
                 className={cn(
                   "flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-2 rounded-xl text-xs sm:text-sm border",
                   tone === t.label
-                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
                     : "bg-card text-foreground border-border hover:bg-accent"
                 )}
               >
@@ -285,7 +296,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
                 className={cn(
                   "px-3 py-1.5 rounded-full text-sm border",
                   length === l
-                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
                     : "bg-card text-foreground border-border hover:bg-accent"
                 )}
               >
@@ -320,7 +331,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
           <label className="text-sm font-medium text-foreground mb-1.5 block">
             Variations: <span className="text-primary">{commentCount}</span>
           </label>
-          <Slider value={[commentCount]} onValueChange={(v) => setCommentCount(v[0])} min={1} max={5} step={1} className="w-full" />
+          <Slider value={[commentCount]} onValueChange={(v) => { const next = v[0]; if (next !== undefined) setCommentCount(next); }} min={1} max={5} step={1} className="w-full" />
         </div>
 
         {/* Toggles */}
@@ -342,7 +353,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
 
       {/* Generate */}
       <Button
-        className="w-full gap-2 bg-blue-600 text-white rounded-xl font-medium shadow-sm"
+        className="w-full gap-2 bg-primary text-primary-foreground rounded-xl font-medium shadow-sm hover:bg-primary/90"
         size="lg"
         onClick={handleGenerate}
         disabled={loading}
@@ -376,7 +387,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
           {comments.map((comment, idx) => (
             <div key={idx} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-blue-600">#{idx + 1}</span>
+                <span className="text-xs font-semibold text-primary">#{idx + 1}</span>
                 <span className="text-xs text-muted-foreground">{comment.length} chars</span>
               </div>
 

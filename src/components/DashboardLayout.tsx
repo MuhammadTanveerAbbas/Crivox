@@ -5,7 +5,7 @@ import PageTransition from "@/components/PageTransition";
 import {
   History, Settings, Menu, X,
   Zap, LayoutGrid, BookOpen, BarChart3, ChevronRight,
-  PanelLeftClose, PanelLeft, CalendarClock, LogOut, User,
+  PanelLeftClose, PanelLeft, CalendarClock, LogOut,
 } from "lucide-react";
 import CrivoxIcon from "@/components/CrivoxIcon";
 import { Button } from "@/components/ui/button";
@@ -130,7 +130,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                     "flex items-center w-full rounded-xl text-sm",
                     collapsed && !isMobile ? "justify-center h-9 w-9 mx-auto" : "gap-3 px-3 py-2.5",
                     isActive
-                      ? "bg-blue-600/10 text-blue-600 font-medium"
+                      ? "bg-primary/10 text-primary font-medium"
                       : "text-muted-foreground"
                   )}
                 >
@@ -181,7 +181,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         <div className="flex-1 flex flex-col min-w-0">
           {/* Topbar */}
           <header className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 h-14 border-b border-border bg-card shrink-0">
-            <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setMobileOpen(true)}>
+            <Button variant="ghost" size="icon" className="md:hidden h-11 w-11 min-h-[44px] min-w-[44px]" onClick={() => setMobileOpen(true)}>
               <Menu className="h-4 w-4" />
             </Button>
 

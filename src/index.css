@@ -128,12 +128,6 @@ img, video, svg {
 @layer base {
   * {
     @apply border-border;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  *::-webkit-scrollbar {
-    display: none;
   }
 
   body {
@@ -173,7 +167,7 @@ img, video, svg {
   }
 
   .font-mono-code {
-    font-family: 'DM Sans', system-ui, sans-serif;
+    font-family: 'JetBrains Mono', 'DM Sans', monospace;
   }
 
   /* Semantic panel  replaces hardcoded bg-white/border-slate-100 */

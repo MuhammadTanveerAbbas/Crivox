@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Star, Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft } from "lucide-react";
 import CrivoxIcon from "@/components/CrivoxIcon";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -54,7 +54,7 @@ const Login = () => {
   if (showEmailReset) {
     return (
       <div className="min-h-screen flex">
-        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 flex-col justify-between p-8 lg:p-12 relative overflow-hidden">
+        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary to-primary/80 flex-col justify-between p-8 lg:p-12 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-white -translate-x-1/2 -translate-y-1/2" />
             <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-white translate-x-1/3 translate-y-1/3" />
@@ -96,7 +96,7 @@ const Login = () => {
                 onKeyDown={(e) => e.key === "Enter" && handlePasswordReset()}
               />
               <Button
-                className="w-full gap-2 bg-blue-600 text-white rounded-xl h-11 font-medium"
+                className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-11 font-medium"
                 onClick={handlePasswordReset}
                 disabled={sendingReset}
               >
@@ -112,7 +112,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
-      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 flex-col justify-between p-8 lg:p-12 relative overflow-hidden">
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary to-primary/80 flex-col justify-between p-8 lg:p-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-white -translate-x-1/2 -translate-y-1/2" />
           <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-white translate-x-1/3 translate-y-1/3" />
@@ -126,30 +126,13 @@ const Login = () => {
             "Write better comments, in seconds."
           </p>
           <p className="text-blue-200 text-sm leading-relaxed max-w-xs">
-            AI-powered comment generation for every platform and tone. Join thousands of professionals saving hours every week.
+            AI-powered comment generation for every platform and tone. Free to start — no credit card required.
           </p>
         </div>
         <div className="relative">
-          <div className="flex items-center gap-3">
-            <div className="flex -space-x-2">
-              {["S", "J", "P", "M"].map((initial) => (
-                <div
-                  key={initial}
-                  className="h-8 w-8 rounded-full bg-white/20 border-2 border-blue-600 flex items-center justify-center text-white text-xs font-semibold"
-                >
-                  {initial}
-                </div>
-              ))}
-            </div>
-            <div>
-              <div className="flex gap-0.5 mb-0.5">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="h-3 w-3 fill-yellow-300 text-yellow-300" />
-                ))}
-              </div>
-              <p className="text-blue-200 text-xs">Join 10k+ professionals</p>
-            </div>
-          </div>
+          <p className="text-blue-200 text-xs leading-relaxed max-w-xs">
+            8 tone styles · 6 platforms · Results in seconds
+          </p>
         </div>
       </div>
       <div className="flex-1 flex items-center justify-center bg-background px-6 py-12 min-h-screen md:min-h-0">

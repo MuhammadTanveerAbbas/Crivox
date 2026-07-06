@@ -27,7 +27,7 @@ export const PlatformsGrid = () => (
           <div className="bg-card border border-border rounded-2xl p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center shrink-0">
-                <p.icon className="h-5 w-5 text-blue-600" />
+                <p.icon className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-foreground">{p.name}</h4>

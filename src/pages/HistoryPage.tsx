@@ -139,7 +139,7 @@ const HistoryPage = () => {
             <Button
               variant={showFavoritesOnly ? "default" : "outline"}
               size="sm"
-              className={cn("gap-1.5", showFavoritesOnly && "bg-blue-600 text-white border-blue-600")}
+              className={cn("gap-1.5", showFavoritesOnly && "bg-primary text-primary-foreground border-primary")}
               onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             >
               <Star className={cn("h-3.5 w-3.5", showFavoritesOnly && "fill-current")} />
@@ -198,7 +198,7 @@ const HistoryPage = () => {
                   className="w-full flex items-center gap-2 px-4 sm:px-5 py-3 text-left"
                   onClick={() => setExpanded(expanded === item.id ? null : item.id)}
                 >
-                  {item.is_favorite && <Star className="h-3.5 w-3.5 text-blue-600 fill-blue-600 shrink-0" />}
+                  {item.is_favorite && <Star className="h-3.5 w-3.5 text-primary fill-primary shrink-0" />}
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-foreground line-clamp-1">{item.input_content || "No content"}</p>
                     <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
@@ -214,17 +214,17 @@ const HistoryPage = () => {
                   <div className="px-5 pb-4 space-y-2 border-t border-border pt-3">
                     {item.generated_comments.map((c, idx) => (
                       <div key={idx} className="flex items-start gap-2 bg-accent rounded-lg p-3">
-                        <span className="text-xs font-semibold text-blue-600 shrink-0 mt-0.5">#{idx + 1}</span>
+                        <span className="text-xs font-semibold text-primary shrink-0 mt-0.5">#{idx + 1}</span>
                         <p className="flex-1 text-sm text-foreground whitespace-pre-wrap leading-relaxed">{c}</p>
                         <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8"
                           onClick={(e) => { e.stopPropagation(); handleCopy(c, `${item.id}-${idx}`); }}>
-                          {copiedId === `${item.id}-${idx}` ? <Check className="h-3.5 w-3.5 text-blue-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                          {copiedId === `${item.id}-${idx}` ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                         </Button>
                       </div>
                     ))}
                     <div className="flex items-center gap-1 pt-1 flex-wrap">
                       <Button variant="ghost" size="sm"
-                        className={cn("gap-1.5", item.is_favorite ? "text-blue-600" : "text-muted-foreground")}
+                        className={cn("gap-1.5", item.is_favorite ? "text-primary" : "text-muted-foreground")}
                         onClick={() => handleToggleFavorite(item.id, item.is_favorite)}>
                         <Star className={cn("h-3.5 w-3.5", item.is_favorite && "fill-current")} />
                         {item.is_favorite ? "Favorited" : "Favorite"}

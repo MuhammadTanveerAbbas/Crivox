@@ -78,7 +78,7 @@ DROP POLICY IF EXISTS "Users can delete their own shares" ON public.shared_comme
 
 CREATE POLICY "Users can insert their own shares" ON public.shared_comments FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can view their own shares"   ON public.shared_comments FOR SELECT TO authenticated USING (auth.uid() = user_id);
-CREATE POLICY "Anyone can view shared comments"   ON public.shared_comments FOR SELECT TO anon       USING (true);
+CREATE POLICY "Anyone can view shared comments"   ON public.shared_comments FOR SELECT            USING (true);
 CREATE POLICY "Users can delete their own shares" ON public.shared_comments FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 CREATE INDEX IF NOT EXISTS idx_shared_comments_share_slug ON public.shared_comments(share_slug);
