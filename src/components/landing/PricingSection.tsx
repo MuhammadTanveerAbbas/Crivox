@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 import { Button } from "@/components/ui/button";
-import { Check, Clock } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const plans = [
   {
@@ -11,11 +14,10 @@ const plans = [
     period: "forever",
     description: "Try it out, no commitment",
     featured: false,
-    comingSoon: false,
     features: [
       "Up to 3 comment variations",
       "8 tone styles",
-      "6 platforms supported",
+      "10 platforms supported",
       "English only",
       "Comment history",
     ],
@@ -27,7 +29,6 @@ const plans = [
     period: "per month",
     description: "For people who comment regularly",
     featured: true,
-    comingSoon: true,
     features: [
       "Up to 5 comment variations",
       "8 tone styles",
@@ -35,13 +36,42 @@ const plans = [
       "Bulk generation (up to 5 posts)",
       "Templates & queue",
       "Full comment history",
+      "Voice Profile & AI Memory",
+      "Priority AI generation",
     ],
-    cta: "Coming Soon",
+    cta: "Subscribe",
   },
 ];
 
 export const PricingSection = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const handleProClick = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch("/api/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id, email: user.email }),
+      });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error(data.error || "Failed to start checkout. Please try again.");
+      }
+    } catch {
+      toast.error("Failed to connect to payment service. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section id="pricing" className="px-4 sm:px-6 py-16 sm:py-24 bg-muted/30">
@@ -51,7 +81,7 @@ export const PricingSection = () => {
             Simple pricing
           </h2>
           <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Start free today. Pro is in development — we will announce it when it launches.
+            Start free. Upgrade when you need more power.
           </p>
         </ScrollReveal>
 
@@ -66,13 +96,6 @@ export const PricingSection = () => {
                     : "border border-border shadow-sm"
                 )}
               >
-                {plan.comingSoon && (
-                  <span className="absolute top-4 right-4 flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-200 dark:border-amber-800">
-                    <Clock className="h-3 w-3" />
-                    Coming Soon
-                  </span>
-                )}
-
                 <h3 className="font-display text-2xl font-medium text-foreground">{plan.name}</h3>
                 <div className="mt-3 mb-1 flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-foreground">{plan.price}</span>
@@ -90,19 +113,19 @@ export const PricingSection = () => {
                 </ul>
 
                 <Button
-                  disabled={plan.comingSoon}
                   className={cn(
                     "w-full rounded-xl font-medium min-h-[44px]",
                     plan.featured
-                      ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-70"
+                      ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
                       : "bg-card border border-border text-foreground hover:bg-accent"
                   )}
-                  onClick={() => !plan.comingSoon && navigate("/login")}
+                  onClick={plan.featured ? handleProClick : () => navigate("/login")}
+                  disabled={loading}
                 >
-                  {plan.comingSoon ? (
+                  {loading && plan.featured ? (
                     <span className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      {plan.cta}
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Loading...
                     </span>
                   ) : (
                     plan.cta

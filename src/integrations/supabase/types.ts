@@ -212,6 +212,81 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_samples: {
+        Row: {
+          id: string
+          user_id: string
+          content: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          content: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          content?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          user_id: string
+          window_start: string
+          count: number
+        }
+        Insert: {
+          user_id: string
+          window_start?: string
+          count?: number
+        }
+        Update: {
+          user_id?: string
+          window_start?: string
+          count?: number
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          plan: string
+          status: string
+          current_period_end: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          plan?: string
+          status?: string
+          current_period_end?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          plan?: string
+          status?: string
+          current_period_end?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

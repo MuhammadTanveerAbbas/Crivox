@@ -147,6 +147,70 @@ CREATE POLICY "Users can delete own queue" ON public.comment_queue FOR DELETE TO
 CREATE INDEX IF NOT EXISTS idx_comment_queue_user_id        ON public.comment_queue(user_id);
 CREATE INDEX IF NOT EXISTS idx_comment_queue_scheduled_date ON public.comment_queue(scheduled_date);
 
+-- ── voice_samples ────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.voice_samples (
+  id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  content    TEXT        NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.voice_samples ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own voice samples"   ON public.voice_samples;
+DROP POLICY IF EXISTS "Users can insert own voice samples" ON public.voice_samples;
+DROP POLICY IF EXISTS "Users can delete own voice samples" ON public.voice_samples;
+
+CREATE POLICY "Users can view own voice samples"   ON public.voice_samples FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own voice samples" ON public.voice_samples FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own voice samples" ON public.voice_samples FOR DELETE TO authenticated USING (auth.uid() = user_id);
+
+CREATE INDEX IF NOT EXISTS idx_voice_samples_user_id ON public.voice_samples(user_id);
+
+-- ── rate_limits ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.rate_limits (
+  user_id      UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  window_start TIMESTAMPTZ NOT NULL DEFAULT now(),
+  count        INTEGER     NOT NULL DEFAULT 1
+);
+
+ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own rate limit"  ON public.rate_limits;
+DROP POLICY IF EXISTS "Users can insert own rate limit" ON public.rate_limits;
+DROP POLICY IF EXISTS "Users can update own rate limit" ON public.rate_limits;
+
+CREATE POLICY "Users can view own rate limit"  ON public.rate_limits FOR SELECT   TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own rate limit" ON public.rate_limits FOR INSERT   TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own rate limit" ON public.rate_limits FOR UPDATE   TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limits_user_id ON public.rate_limits(user_id);
+
+-- ── subscriptions ───────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.subscriptions (
+  id                    UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id               UUID        NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  stripe_customer_id    TEXT,
+  stripe_subscription_id TEXT,
+  plan                  TEXT        NOT NULL DEFAULT 'free',
+  status                TEXT        NOT NULL DEFAULT 'active',
+  current_period_end    TIMESTAMPTZ,
+  created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at            TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own subscription" ON public.subscriptions;
+CREATE POLICY "Users can view own subscription" ON public.subscriptions FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(user_id);
+
+DROP TRIGGER IF EXISTS set_subscriptions_updated_at ON public.subscriptions;
+CREATE TRIGGER set_subscriptions_updated_at
+  BEFORE UPDATE ON public.subscriptions
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
 -- ── Functions & Triggers ─────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.set_updated_at()

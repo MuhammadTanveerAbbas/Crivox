@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/landing/ScrollReveal";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Check, Zap, Sparkles, Clock } from "lucide-react";
+import { Check, Zap, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const plans = [
   {
@@ -15,13 +17,12 @@ const plans = [
     period: "forever",
     description: "Everything you need to get started",
     featured: false,
-    comingSoon: false,
     icon: Zap,
     color: "text-blue-500",
     features: [
       "Up to 3 comment variations",
       "8 tone styles",
-      "6 platforms supported",
+      "10 platforms supported",
       "English only",
       "Comment history",
       "Basic analytics",
@@ -34,7 +35,6 @@ const plans = [
     period: "per month",
     description: "For power users who comment at scale",
     featured: true,
-    comingSoon: true,
     icon: Sparkles,
     color: "text-violet-500",
     features: [
@@ -44,10 +44,11 @@ const plans = [
       "Bulk generation (up to 5 posts)",
       "Templates & comment queue",
       "Full comment history",
+      "Voice Profile & AI Memory",
       "Priority AI generation",
       "Advanced analytics",
     ],
-    cta: "Coming Soon",
+    cta: "Subscribe",
   },
 ];
 
@@ -68,6 +69,33 @@ const FloatingOrb = ({ className, delay = 0 }: { className?: string; delay?: num
 
 export default function PricingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const handleProClick = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch("/api/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id, email: user.email }),
+      });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error(data.error || "Failed to start checkout. Please try again.");
+      }
+    } catch {
+      toast.error("Failed to connect to payment service. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -145,18 +173,8 @@ export default function PricingPage() {
                   {/* Popular badge */}
                   {plan.featured && (
                     <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-violet-600 text-white text-xs px-3 py-0.5 rounded-full shadow-sm">
+                      <span className="bg-violet-600 text-white text-xs px-3 py-0.5 rounded-full shadow-sm inline-block">
                         Most Popular
-                      </Badge>
-                    </div>
-                  )}
-
-                  {/* Coming soon ribbon */}
-                  {plan.comingSoon && (
-                    <div className="absolute top-4 right-4">
-                      <span className="flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-200 dark:border-amber-800">
-                        <Clock className="h-3 w-3" />
-                        Coming Soon
                       </span>
                     </div>
                   )}
@@ -203,19 +221,19 @@ export default function PricingPage() {
 
                   {/* CTA */}
                   <Button
-                    disabled={plan.comingSoon}
+                    disabled={loading && plan.featured}
                     className={cn(
                       "w-full rounded-xl font-medium transition-all duration-200",
                       plan.featured
-                        ? "bg-violet-600 hover:bg-violet-700 text-white shadow-sm cursor-not-allowed opacity-70"
+                        ? "bg-violet-600 hover:bg-violet-700 text-white shadow-sm"
                         : "bg-primary hover:bg-primary/90 text-primary-foreground"
                     )}
-                    onClick={() => !plan.comingSoon && navigate("/login")}
+                    onClick={plan.featured ? handleProClick : () => navigate("/login")}
                   >
-                    {plan.comingSoon ? (
+                    {loading && plan.featured ? (
                       <span className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        {plan.cta}
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading...
                       </span>
                     ) : (
                       plan.cta
@@ -247,7 +265,7 @@ export default function PricingPage() {
           {[
             { feature: "Comment variations", free: "3", pro: "5" },
             { feature: "Tone styles", free: "8", pro: "8" },
-            { feature: "Platforms", free: "6", pro: "6" },
+            { feature: "Platforms", free: "10", pro: "10" },
             { feature: "Languages", free: "English only", pro: "9 languages" },
             { feature: "Bulk generation", free: "", pro: "Up to 5 posts" },
             { feature: "Templates & queue", free: "", pro: "✓" },
@@ -273,28 +291,15 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Notify me section for Pro */}
+      {/* CTA strip */}
       <section className="px-4 sm:px-6 py-16 text-center">
         <ScrollReveal>
-          <motion.div
-            className="max-w-md mx-auto bg-card border border-border rounded-2xl p-8 shadow-sm"
-            whileHover={{ scale: 1.01 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="flex justify-center mb-4">
-              <motion.div
-                className="p-3 rounded-2xl bg-violet-100 dark:bg-violet-950/40"
-                animate={{ rotate: [0, 8, -8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <Sparkles className="h-6 w-6 text-violet-500" />
-              </motion.div>
-            </div>
+          <div className="max-w-md mx-auto bg-card border border-border rounded-2xl p-8 shadow-sm">
             <h3 className="font-display text-xl font-medium text-foreground mb-2">
-              Pro is on its way
+              Start free, upgrade when ready
             </h3>
             <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-              We're putting the finishing touches on Pro. Start with Free today and we'll let you know the moment it launches.
+              No credit card required. Upgrade to Pro whenever you need more power.
             </p>
             <Button
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium"
@@ -302,7 +307,7 @@ export default function PricingPage() {
             >
               Get Started Free
             </Button>
-          </motion.div>
+          </div>
         </ScrollReveal>
       </section>
 

@@ -13,11 +13,11 @@ const faqs = [
   },
   {
     q: "Does it actually fetch URLs?",
-    a: "No  URL mode passes the URL as text to the AI. It does not scrape or fetch the page content. For best results, paste the actual post text.",
+    a: "No, the URL tab passes the URL as context to the AI. It does not scrape the page. For best results, paste the actual post text. For GitHub repos and npm packages, Crivox fetches the README automatically.",
   },
   {
     q: "Which platforms are supported?",
-    a: "LinkedIn, Twitter/X, Instagram, Facebook, Reddit, and Blog/Website. The AI is prompted to match each platform's style.",
+    a: "LinkedIn, Twitter/X, Instagram, Facebook, Reddit, Blog/Website, Hacker News, Indie Hackers, GitHub, and Threads. The AI is prompted to match each platform's culture.",
   },
   {
     q: "How many tone styles are there?",

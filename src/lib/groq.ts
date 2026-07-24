@@ -37,7 +37,12 @@ async function fetchWithRetry(url: string, options: RequestInit, retries: number
   throw new Error("Failed to reach the server. Please try again.");
 }
 
-export async function generateComments(params: GenerateParams): Promise<string[]> {
+export interface GenerateResult {
+  comments: string[];
+  assessment?: string;
+}
+
+export async function generateComments(params: GenerateParams): Promise<GenerateResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error("You must be logged in to generate comments.");
@@ -99,7 +104,10 @@ export async function generateComments(params: GenerateParams): Promise<string[]
     if (!data.comments?.length) {
       throw new Error("No comments were generated. Please try again.");
     }
-    return data.comments.map((c: string) => sanitizeModelOutput(c));
+    return {
+      comments: data.comments.map((c: string) => sanitizeModelOutput(c)),
+      assessment: data.assessment || undefined,
+    };
   } catch (error) {
     clearTimeout(timeoutId);
 

@@ -8,9 +8,10 @@ describe("StatsBar", () => {
 
     expect(screen.getByText("8")).toBeInTheDocument();
     expect(screen.getByText("Tone styles")).toBeInTheDocument();
-    expect(screen.getByText("6")).toBeInTheDocument();
+    expect(screen.getByText("10")).toBeInTheDocument();
     expect(screen.getByText("Platforms")).toBeInTheDocument();
     expect(screen.getByText("9")).toBeInTheDocument();
     expect(screen.getByText("Languages")).toBeInTheDocument();
+    expect(screen.getByText("Variations (Pro)")).toBeInTheDocument();
   });
 });

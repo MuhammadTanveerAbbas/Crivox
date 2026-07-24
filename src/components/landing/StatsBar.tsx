@@ -2,9 +2,9 @@ import { ScrollReveal } from "./ScrollReveal";
 
 const stats = [
   { value: "8", label: "Tone styles" },
-  { value: "6", label: "Platforms" },
+  { value: "10", label: "Platforms" },
   { value: "9", label: "Languages" },
-  { value: "5", label: "Variations per generation" },
+  { value: "5", label: "Variations (Pro)" },
 ];
 
 export const StatsBar = () => (

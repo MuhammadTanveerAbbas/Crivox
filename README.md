@@ -26,16 +26,20 @@ Crivox solves the blank reply box problem. Paste any social media post and get t
 
 ## Features
 
-- **AI Comment Generator** — Paste text, a URL, or upload an image screenshot. Get up to 5 unique variations powered by Groq (Llama 3.3 70B + Llama 4 Scout for vision)
-- **8 Tone Styles** — Professional, Casual, Witty, Supportive, Bold, Educational, Insightful, Authoritative
-- **9 Languages** — English, Spanish, French, German, Portuguese, Hindi, Arabic, Chinese, Japanese
-- **Bulk Generation** — Generate comments for up to 5 posts at once with CSV export
-- **Comment Queue** — Schedule, track, and mark comments as posted with date/time and notes
-- **Templates Library** — 11 built-in presets across 6 categories + create your own
-- **Analytics Dashboard** — 30-day trend, tone distribution pie chart, platform breakdown bar chart
-- **Generation History** — Search, filter by tone/platform, favorite, re-generate, CSV export
-- **Shareable Links** — Public comment set URLs with no login required
-- **Dark/Light Mode** — Persistent theme preference
+- **AI Comment Generator** - Paste text, a URL, or upload an image screenshot. Get up to 5 unique variations powered by Groq (Llama 3.3 70B + Llama 4 Scout for vision)
+- **8 Tone Styles** - Professional, Casual, Witty, Supportive, Bold, Educational, Insightful, Authoritative
+- **9 Languages** - English, Spanish, French, German, Portuguese, Hindi, Arabic, Chinese, Japanese (Pro: multi-language; Free: English only)
+- **Bulk Generation** - Generate comments for up to 5 posts at once with CSV export
+- **Comment Queue** - Schedule, track, and mark comments as posted with date/time and notes
+- **Templates Library** - 11 built-in presets across 6 categories + create your own
+- **Analytics Dashboard** - 30-day trend, tone distribution pie chart, platform breakdown bar chart
+- **Generation History** - Search, filter by tone/platform, favorite, re-generate, CSV export
+- **Shareable Links** - Public comment set URLs with no login required
+- **Dark/Light Mode** - Persistent theme preference
+- **Voice Profile** - Store up to 3 writing samples so AI matches your personal style
+- **GitHub/npm Import** - Paste a repo or package name to auto-fetch README as context
+- **10 Platforms** - LinkedIn, Twitter/X, Instagram, Facebook, Reddit, Blogs, Hacker News, Indie Hackers, GitHub, Threads
+- **Pro Plan ($9/mo)** - Up to 5 variations, 9 languages, priority rate limits, multi-language support
 
 ---
 
@@ -89,6 +93,9 @@ pnpm dev
 | `SUPABASE_SERVICE_ROLE_KEY` | Server | Supabase service role key (edge functions only) |
 | `GROQ_API_KEY` | Yes | Groq API key (set as Supabase Edge Function secret) |
 | `CRON_SECRET` | Keep-alive | Secret for Vercel cron endpoint |
+| `STRIPE_SECRET_KEY` | Billing | Stripe secret key (Vercel env; for api/create-checkout) |
+| `STRIPE_WEBHOOK_SECRET` | Billing | Stripe webhook signing secret (Vercel env; for api/stripe-webhook) |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Billing | Stripe publishable key (Vite frontend) |
 
 ---
 
@@ -98,7 +105,9 @@ pnpm dev
 crivox/
 ├── api/                    # Vercel serverless functions
 │   ├── health.ts
-│   └── keep-alive.ts
+│   ├── keep-alive.ts
+│   ├── create-checkout.ts   # Stripe Checkout session creation
+│   └── stripe-webhook.ts    # Stripe webhook handler
 ├── public/                 # Static assets
 ├── src/
 │   ├── components/
@@ -159,11 +168,11 @@ supabase functions deploy generate-comments
 
 ## License
 
-MIT License — see [LICENSE](LICENSE).
+MIT License - see [LICENSE](LICENSE).
 
 ---
 
 ## Built by The MVP Guy
 
-**Muhammad Tanveer Abbas** — SaaS Developer | Production-ready MVPs in 14–21 days
+**Muhammad Tanveer Abbas** - SaaS Developer | Production-ready MVPs in 14-21 days
 Portfolio: https://themvpguy.vercel.app

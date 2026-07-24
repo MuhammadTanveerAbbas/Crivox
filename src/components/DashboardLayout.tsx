@@ -103,10 +103,12 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         >
           {/* Logo */}
           <div className={cn(
-            "flex items-center border-b border-border h-14",
+            "flex items-center border-b border-border h-14 bg-gradient-to-r from-primary/5 to-transparent",
             collapsed && !isMobile ? "justify-center px-2" : "gap-2.5 px-5"
           )}>
-            <CrivoxIcon size={collapsed && !isMobile ? 28 : 28} />
+            <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+              <CrivoxIcon size={collapsed && !isMobile ? 18 : 18} />
+            </div>
             {(!collapsed || isMobile) && (
               <span className="font-display text-lg text-foreground truncate">Crivox</span>
             )}
@@ -127,15 +129,18 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                   data-tour={item.tourId}
                   onClick={() => { navigate(item.path); setMobileOpen(false); }}
                   className={cn(
-                    "flex items-center w-full rounded-xl text-sm",
-                    collapsed && !isMobile ? "justify-center h-9 w-9 mx-auto" : "gap-3 px-3 py-2.5",
+                    "flex items-center w-full rounded-xl text-sm transition-all duration-150",
+                    collapsed && !isMobile ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-2.5",
                     isActive
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-muted-foreground"
+                      ? "bg-primary/10 text-primary font-medium shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                   )}
                 >
-                  <item.icon className="h-4 w-4 shrink-0" />
+                  <item.icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
                   {(!collapsed || isMobile) && item.label}
+                  {isActive && !collapsed && !isMobile && (
+                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                  )}
                 </button>
               );
 
@@ -143,7 +148,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 return (
                   <Tooltip key={item.path}>
                     <TooltipTrigger asChild>{btn}</TooltipTrigger>
-                    <TooltipContent side="right" sideOffset={8}>{item.label}</TooltipContent>
+                    <TooltipContent side="right" sideOffset={8} className="text-xs font-medium">{item.label}</TooltipContent>
                   </Tooltip>
                 );
               }
@@ -151,27 +156,28 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
             })}
           </nav>
 
-          {/* Collapse toggle */}
+          {/* Bottom section */}
           {!isMobile && (
-            <div className="px-3 pb-4 space-y-1">
+            <div className={cn("pb-4 space-y-1", collapsed ? "px-1.5" : "px-3")}>
               {/* Sign out */}
-              {(!collapsed || isMobile) && (
-                <button
-                  onClick={async () => { await supabase.auth.signOut(); navigate("/", { replace: true }); }}
-                  className="flex items-center gap-3 w-full rounded-xl text-sm text-muted-foreground px-3 py-2 hover:text-foreground transition-colors"
-                >
-                  <LogOut className="h-4 w-4 shrink-0" />
-                  <span>Sign out</span>
-                </button>
-              )}
+              <button
+                onClick={async () => { await supabase.auth.signOut(); navigate("/", { replace: true }); }}
+                className={cn(
+                  "flex items-center w-full rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-150",
+                  collapsed ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-2.5"
+                )}
+              >
+                <LogOut className="h-4 w-4 shrink-0" />
+                {!collapsed && <span>Sign out</span>}
+              </button>
               <button
                 onClick={() => setCollapsed(!collapsed)}
                 className={cn(
-                  "flex items-center w-full rounded-xl text-sm text-muted-foreground",
-                  collapsed ? "justify-center h-9 w-9 mx-auto" : "gap-3 px-3 py-2"
+                  "flex items-center w-full rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-150",
+                  collapsed ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-2.5"
                 )}
               >
-                {collapsed ? <PanelLeft className="h-4 w-4" /> : <><PanelLeftClose className="h-4 w-4" /><span>Collapse</span></>}
+                {collapsed ? <PanelLeft className="h-4 w-4" /> : <><PanelLeftClose className="h-4 w-4" /><span>Collapse sidebar</span></>}
               </button>
             </div>
           )}

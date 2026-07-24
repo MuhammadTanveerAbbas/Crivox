@@ -126,7 +126,7 @@ const Login = () => {
             "Write better comments, in seconds."
           </p>
           <p className="text-blue-200 text-sm leading-relaxed max-w-xs">
-            AI-powered comment generation for every platform and tone. Free to start — no credit card required.
+            AI-powered comment generation for every platform and tone. Free to start, no credit card required.
           </p>
         </div>
         <div className="relative">

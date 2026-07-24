@@ -14,8 +14,10 @@ const features = [
   { feature: "Tone & platform matching", us: "yes", manual: "no", generic: "no" },
   { feature: "Screenshot-to-comment", us: "yes", manual: "no", generic: "no" },
   { feature: "Bulk generation", us: "yes", manual: "no", generic: "partial" },
-  { feature: "Time per comment", us: "~5 sec", manual: "2–5 min", generic: "~15 sec" },
-  { feature: "Sounds like you", us: "yes", manual: "yes", generic: "no" },
+  { feature: "10 platforms supported", us: "yes", manual: "no", generic: "no" },
+  { feature: "Voice matching (AI Memory)", us: "yes", manual: "no", generic: "no" },
+  { feature: "GitHub/npm import", us: "yes", manual: "no", generic: "no" },
+  { feature: "Time per comment", us: "~5 sec", manual: "2-5 min", generic: "~15 sec" },
   { feature: "Queue & scheduling", us: "yes", manual: "no", generic: "no" },
   { feature: "Free tier", us: "yes", manual: "yes", generic: "partial" },
 ];

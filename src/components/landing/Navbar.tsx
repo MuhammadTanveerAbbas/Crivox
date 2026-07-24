@@ -32,21 +32,23 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 max-w-6xl mx-auto">
         {/* Logo */}
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-          <CrivoxIcon size={28} />
+        <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate("/")}>
+          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <CrivoxIcon size={20} />
+          </div>
           <span className="font-display text-xl text-foreground tracking-tight">Crivox</span>
         </div>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-7">
+        <div className="hidden md:flex items-center gap-8">
           {navLinks.map((item) => (
             <button
               key={item.id}
               onClick={() => handleNav(item)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors relative after:absolute after:bottom-[-20px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 hover:after:scale-x-100 after:transition-transform"
             >
               {item.label}
             </button>
@@ -56,10 +58,10 @@ export const Navbar = () => {
         {/* Desktop actions */}
         <div className="hidden md:flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => navigate("/login")}>
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent/50" onClick={() => navigate("/login")}>
             Log in
           </Button>
-          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 text-sm font-medium" onClick={() => navigate("/login")}>
+          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-5 py-2 text-sm font-medium shadow-sm" onClick={() => navigate("/login")}>
             Get Started
           </Button>
         </div>
@@ -73,13 +75,13 @@ export const Navbar = () => {
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-64 bg-background border-border">
+            <SheetContent side="right" className="w-64 bg-background/95 backdrop-blur-lg border-border">
               <div className="flex flex-col gap-1 mt-8">
                 {navLinks.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => handleNav(item)}
-                    className="text-left px-3 py-3 min-h-[44px] text-sm text-muted-foreground rounded-lg hover:text-foreground transition-colors"
+                    className="text-left px-3 py-3 min-h-[44px] text-sm text-muted-foreground rounded-lg hover:text-foreground hover:bg-accent/50 transition-colors"
                   >
                     {item.label}
                   </button>
@@ -88,7 +90,7 @@ export const Navbar = () => {
                   <Button variant="outline" className="w-full rounded-xl" onClick={() => { navigate("/login"); setOpen(false); }}>
                     Log in
                   </Button>
-                  <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl" onClick={() => { navigate("/login"); setOpen(false); }}>
+                  <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-sm" onClick={() => { navigate("/login"); setOpen(false); }}>
                     Get Started
                   </Button>
                 </div>

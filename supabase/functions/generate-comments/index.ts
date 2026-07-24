@@ -210,7 +210,8 @@ const platformGuides: Record<string, string> = {
     + "- Be respectful and constructive even when disagreeing\n"
     + "- BANNED: 'Great post!', 'Thanks for sharing', 'This is so important',\n"
     + "  'Very insightful', 'Well said', 'Great insights', 'Love this'\n"
-    + "- DO: Add a specific observation, share a relevant experience, ask a thoughtful question",
+    + "- DO: Add a specific observation, share a relevant experience, ask a thoughtful question\n"
+    + "- ALGO TIP: Comments that prompt a reply from the original poster get weighted higher by the 2026 LinkedIn algorithm. Include a real question or invite a genuine discussion, not a rhetorical one. Specific, substantive comments (10+ words) carry more weight than likes.",
 
   "Twitter/X":
     "Twitter/X is fast-paced and public. Brevity and personality win.\n"
@@ -277,6 +278,58 @@ const platformGuides: Record<string, string> = {
     + "  'Thanks for this', 'Excellent piece', 'Great read'\n"
     + "- DO: Engage intellectually, provide additional resources, ask deeper questions",
 
+  "Hacker News":
+    "Hacker News is a technical community that values substance over style.\n"
+    + "RULES:\n"
+    + "- Zero marketing tone. No self-promotion, no buzzwords, no landing page language\n"
+    + "- Technical precision matters: be accurate, specific, and cite details\n"
+    + "- Willingness to be contrarian is respected, but back it with reasoning\n"
+    + "- Short and dense over long and padded. Every sentence should carry weight\n"
+    + "- No emojis, no hashtags, no markdown formatting beyond basic emphasis\n"
+    + "- Reference the post content directly before adding your own take\n"
+    + "- BANNED: 'Great post', 'Thanks for sharing', 'Interesting', 'Love this',\n"
+    + "  'This is important', 'Bookmarking', marketing language, self-promotion\n"
+    + "- DO: Add technical detail, correct a specific claim, share a relevant implementation experience",
+
+  "Indie Hackers":
+    "Indie Hackers is a community of bootstrapped founders and builders.\n"
+    + "RULES:\n"
+    + "- Builder-to-builder voice: comfortable referencing metrics, revenue, user numbers\n"
+    + "- Supportive but specific, generic encouragement rings hollow\n"
+    + "- 'What did you actually learn' energy over generic 'keep going' messages\n"
+    + "- Share real numbers and real experiences when relevant\n"
+    + "- Emojis are fine in moderation, hashtags are not\n"
+    + "- No corporate jargon, no investor-speak\n"
+    + "- BANNED: 'Great idea', 'Love this', 'Thanks for sharing', 'This is inspiring',\n"
+    + "  'You got this', 'Keep grinding', marketing language\n"
+    + "- DO: Ask about specific metrics, share a parallel experience, offer actionable feedback",
+
+  GitHub:
+    "GitHub is for discussing code, issues, PRs, and technical decisions.\n"
+    + "RULES:\n"
+    + "- Technical, specific, directly references actual code or behavior\n"
+    + "- No fluff, no greeting, get straight to the technical point\n"
+    + "- Be constructive: suggest improvements, not just problems\n"
+    + "- Reference specific lines, functions, or behaviors when commenting on code\n"
+    + "- No emojis, no hashtags, no marketing language\n"
+    + "- Professional and respectful even when disagreeing about approach\n"
+    + "- BANNED: 'Great code', 'Nice work', 'Love this', 'Thanks for sharing',\n"
+    + "  'This is awesome', any non-technical praise\n"
+    + "- DO: Reference specific code patterns, suggest concrete improvements, cite alternatives",
+
+  Threads:
+    "Threads is Meta's public conversation platform, similar to X but slightly warmer.\n"
+    + "RULES:\n"
+    + "- Short and punchy. Get to the point in the first sentence\n"
+    + "- Slightly warmer and more conversational than X/Twitter\n"
+    + "- Wit and personality are welcome, but keep it accessible\n"
+    + "- Emojis are expected and natural, use 1-2 per comment\n"
+    + "- No hashtags (they are not standard on Threads yet)\n"
+    + "- Thread-style replies are fine for longer thoughts\n"
+    + "- BANNED: 'Great thread', 'Love this', 'This', 'Facts',\n"
+    + "  'Couldn't agree more', corporate-speak, overly formal language\n"
+    + "- DO: Add a personal take, reference current culture, respond to the poster's specific point",
+
   Other:
     "Write naturally for the platform the user specified.\n"
     + "RULES:\n"
@@ -286,22 +339,47 @@ const platformGuides: Record<string, string> = {
     + "- Adapt length and style to the platform's typical comment culture",
 };
 
-const requestCounts = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(userId: string): { allowed: boolean; retryAfter?: number } {
-  const now = Date.now();
+async function checkRateLimit(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<{ allowed: boolean; retryAfter?: number }> {
   const windowMs = 60_000;
   const maxRequests = 20;
-  const entry = requestCounts.get(userId);
-  if (!entry || now > entry.resetAt) {
-    requestCounts.set(userId, { count: 1, resetAt: now + windowMs });
+  const now = new Date();
+
+  const { data: row } = await supabase
+    .from("rate_limits")
+    .select("window_start, count")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!row) {
+    await supabase.from("rate_limits").insert({
+      user_id: userId,
+      window_start: now.toISOString(),
+      count: 1,
+    });
     return { allowed: true };
   }
-  if (entry.count >= maxRequests) {
-    const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+
+  const windowStart = new Date(row.window_start).getTime();
+  if (now.getTime() - windowStart > windowMs) {
+    await supabase.from("rate_limits").update({
+      window_start: now.toISOString(),
+      count: 1,
+    }).eq("user_id", userId);
+    return { allowed: true };
+  }
+
+  if (row.count >= maxRequests) {
+    const retryAfter = Math.ceil((windowStart + windowMs - now.getTime()) / 1000);
     return { allowed: false, retryAfter };
   }
-  entry.count++;
+
+  await supabase.from("rate_limits").update({
+    count: row.count + 1,
+  }).eq("user_id", userId);
+
   return { allowed: true };
 }
 
@@ -421,6 +499,121 @@ async function fetchUrlContent(
   }
 
   throw new Error("Could not fetch the URL content after multiple attempts.");
+}
+
+// ── GitHub Repo Fetching ─────────────────────────────────────
+
+async function fetchGitHubContent(
+  repoUrl: string,
+): Promise<{ title: string; description: string; content: string; url: string }> {
+  const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/\s?#]+)/);
+  if (!match) {
+    throw new Error("Could not parse GitHub URL. Use format: github.com/owner/repo");
+  }
+  const owner = match[1];
+  const repo = match[2].replace(/\.git$/, "");
+
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
+
+  const repoResponse = await fetch(apiUrl, {
+    headers: { Accept: "application/vnd.github.v3+json", "User-Agent": "Crivox/1.0" },
+  });
+
+  if (!repoResponse.ok) {
+    if (repoResponse.status === 404) throw new Error("GitHub repository not found. Check the owner and repo name.");
+    if (repoResponse.status === 403) throw new Error("GitHub API rate limit reached. Try again later.");
+    throw new Error(`GitHub API returned status ${repoResponse.status}`);
+  }
+
+  const repoData = await repoResponse.json();
+  const description = repoData.description || "";
+  const language = repoData.language || "";
+  const stars = repoData.stargazers_count ?? 0;
+  const topics = (repoData.topics || []).join(", ");
+
+  // Fetch README
+  let readmeContent = "";
+  try {
+    const readmeResponse = await fetch(`${apiUrl}/readme`, {
+      headers: { Accept: "application/vnd.github.v3.raw", "User-Agent": "Crivox/1.0" },
+    });
+    if (readmeResponse.ok) {
+      readmeContent = await readmeResponse.text();
+      if (readmeContent.length > 4000) {
+        readmeContent = readmeContent.slice(0, 4000) + "\n\n[... README truncated]";
+      }
+    }
+  } catch {
+    // README fetch is non-critical
+  }
+
+  const title = `${owner}/${repo}`;
+  const content = (
+    `Repository: ${owner}/${repo}\n`
+    + (description ? `Description: ${description}\n` : "")
+    + (language ? `Language: ${language}\n` : "")
+    + `Stars: ${stars}\n`
+    + (topics ? `Topics: ${topics}\n` : "")
+    + (readmeContent ? `\n--- README ---\n${readmeContent}` : "")
+  );
+
+  return { title, description, content, url: repoUrl };
+}
+
+// ── npm Package Fetching ──────────────────────────────────────
+
+async function fetchNpmContent(
+  packageName: string,
+): Promise<{ title: string; description: string; content: string; url: string }> {
+  const name = packageName.replace(/^https?:\/\/www\.npmjs\.com\/package\//, "").replace(/\/$/, "").trim();
+  if (!name) throw new Error("Could not parse npm package name.");
+
+  const apiUrl = `https://registry.npmjs.org/${encodeURIComponent(name)}`;
+
+  const response = await fetch(apiUrl, {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) throw new Error(`npm package "${name}" not found.`);
+    throw new Error(`npm registry returned status ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  const latestVersion = data["dist-tags"]?.latest || "unknown";
+  const versionData = data.versions?.[latestVersion] || {};
+  const description = data.description || versionData.description || "";
+  const keywords = (data.keywords || []).join(", ");
+  const license = data.license || versionData.license || "unknown";
+
+  // Fetch README
+  let readmeContent = "";
+  try {
+    const readmeResponse = await fetch(`${apiUrl}/${latestVersion}/readme`, {
+      headers: { Accept: "text/html" },
+    });
+    if (readmeResponse.ok) {
+      readmeContent = await readmeResponse.text();
+      if (readmeContent.length > 4000) {
+        readmeContent = readmeContent.slice(0, 4000) + "\n\n[... README truncated]";
+      }
+    }
+  } catch {
+    // README fetch is non-critical
+  }
+
+  const title = name;
+  const content = (
+    `Package: ${name}\n`
+    + `Version: ${latestVersion}\n`
+    + (description ? `Description: ${description}\n` : "")
+    + (keywords ? `Keywords: ${keywords}\n` : "")
+    + `License: ${license}\n`
+    + (readmeContent ? `\n--- README ---\n${readmeContent}` : "")
+  );
+
+  return { title, description, content, url: `https://www.npmjs.com/package/${name}` };
 }
 
 function extractHtmlContent(
@@ -581,7 +774,34 @@ const bannedPhrases = [
   "Came here to say this", "This is the way", "Underrated comment",
   "Facts", "This", " literally", " obsessed", "Need this",
   "Great article", "Nice post", "Awesome", "Perfect",
+  "game changer", "unlock", "in today's fast paced world",
+  "delve", "showcase", "navigate the landscape", "at the end of the day",
+  "revolutionize", "leverage", "seamless", "transformative", "empower",
+  "bespoke", "holistic",
 ];
+
+function buildCommenterBlock(profile: {
+  full_name?: string; profession?: string; industry?: string;
+  target_audience?: string; use_case?: string;
+}, voiceSamples: string[]): string | null {
+  const parts: string[] = [];
+  if (profile.full_name) parts.push(`Name: ${profile.full_name}`);
+  if (profile.profession) parts.push(`Role: ${profile.profession}`);
+  if (profile.industry) parts.push(`Industry: ${profile.industry}`);
+  if (profile.target_audience) parts.push(`Audience: ${profile.target_audience}`);
+  if (profile.use_case) parts.push(`Goal: ${profile.use_case}`);
+  if (parts.length === 0 && voiceSamples.length === 0) return null;
+
+  const profileBlock = parts.length > 0
+    ? `ABOUT THE COMMENTER:\n${parts.join("\n")}\n\nThe commenter above is the person whose voice you should match. Write comments that fit their professional identity, audience, and context. This is who they are, write as them.`
+    : "";
+
+  const voiceBlock = voiceSamples.length > 0
+    ? `\n\nVOICE REFERENCE:\nHere is how this person actually writes. Match their rhythm, vocabulary, and sentence patterns. Do not copy the content, imitate the voice.\n${voiceSamples.map((s, i) => `--- Sample ${i + 1} ---\n${s}`).join("\n\n")}`
+    : "";
+
+  return profileBlock + voiceBlock || null;
+}
 
 function buildRules(options: {
   tone: string; length: string; language: string; platform: string;
@@ -598,13 +818,19 @@ function buildRules(options: {
     "",
     "QUALITY RULES:",
     "  - Each variation must be meaningfully different in structure, angle, and approach",
-    "  - Sound like a real human — vary sentence length and rhythm",
     "  - Reference something specific from the post content to prove you read it",
     "  - Use concrete, specific language — avoid vague praise",
-    "  - Do NOT start every sentence the same way",
     "  - Never announce the tone ('Here's my professional take...') — just write in that tone",
     "  - No clichés, platitudes, or generic encouragement",
     "  - Get to the point — no filler introductions",
+    "",
+    "HUMANIZATION RULES (these matter more than any other rule):",
+    "  - Vary sentence length aggressively. Mix 3-8 word sentences with 20+ word sentences in the same comment. AI output defaults to a narrow medium band, avoid that.",
+    "  - Never use three-item lists (triads like 'fast, reliable, and scalable' are an AI tell). One or two specifics beat a rhythmic three.",
+    "  - Never use the 'it's not X, it's Y' construction or similar smooth-transition scaffolding.",
+    "  - No hedging. If the comment would naturally take a position, take it clearly.",
+    "  - Never start consecutive sentences with the same word or structure.",
+    "  - Zero em dashes (---) or hyphens used as sentence separators. Use periods, commas, or colons instead.",
     "",
     "ABSOLUTELY BANNED PHRASES (never use these):",
     `  ${bannedPhrases.join(", ")}`,
@@ -640,11 +866,16 @@ function buildSystemPrompt(options: {
   tone: string; length: string; platform: string; language: string;
   includeEmoji: boolean; includeHashtags: boolean; includeCta: boolean;
   commentCount: number; single: boolean; variationNumber: number | null;
+  profile?: { full_name?: string; profession?: string; industry?: string;
+    target_audience?: string; use_case?: string };
+  voiceSamples?: string[];
 }): string {
   const rules = buildRules(options);
   const platformRule = platformGuides[options.platform] || platformGuides.Other;
+  const commenterBlock = buildCommenterBlock(options.profile || {}, options.voiceSamples || []);
+  const commenterSection = commenterBlock ? `\n${commenterBlock}\n` : "";
 
-  return `You are an expert social media comment writer. You deeply understand every platform's culture, norms, and unwritten rules. You write comments that real people would write — specific, authentic, and valuable.
+  return `You are an expert social media comment writer. You deeply understand every platform's culture, norms, and unwritten rules. You write comments that real people would write — specific, authentic, and valuable.${commenterSection}
 
 Generate exactly ${options.commentCount} distinct comment variation${options.commentCount > 1 ? "s" : ""} for a ${options.platform} post.
 
@@ -654,6 +885,9 @@ ${rules.join("\n")}
 === PLATFORM-SPECIFIC GUIDELINES FOR ${options.platform.toUpperCase()} ===
 ${platformRule}
 
+=== WHAT MAKES A COMMENT LAND IN 2026 ===
+Be aware of current platform dynamics: on LinkedIn, meaningful comments (10+ words, specific) carry more algorithmic weight than likes. Reply threading matters more than volume, so a real question that prompts a reply from the poster is high value. On X/Twitter, brevity and sharp takes win. On Reddit, authenticity and substance beat polish. On all platforms, comments that add a specific observation or a genuine question outperform generic reactions. Write to be read by a human, not to sound impressive.
+
 Now read the post content below and write comments that:
 1. Show you understand the specific post (reference real details from it)
 2. Add new thinking — don't just react, contribute something original
@@ -661,81 +895,102 @@ Now read the post content below and write comments that:
 4. Would earn upvotes/likes/replies from that platform's community
 5. Make the original poster glad they shared
 
-OUTPUT FORMAT:
-Return ONLY a valid JSON array of ${options.commentCount} strings. No markdown, no code blocks, no explanation before or after the array.
-Example: ${JSON.stringify(options.commentCount === 1 ? ["comment text here"] : ["comment 1", "comment 2", "comment 3"].slice(0, options.commentCount))}
+First, make a one-line assessment: is there a specific, genuine angle worth engaging with here, or is the post thin (a link with no real content, pure engagement bait, or content you couldn't meaningfully parse)? Prefix this with "ASSESSMENT:" and keep it to one sentence.
+
+Then immediately after, output the comments as a valid JSON array.
+
+OUTPUT FORMAT (two parts, no extra text):
+Line 1: ASSESSMENT: <one sentence assessment of the post's substance>
+Line 2: <valid JSON array of ${options.commentCount} strings>
 
 IMPORTANT: If your output contains any banned phrases, it has failed. Write like a human, not a bot, not a marketer. A human.`;
 }
 
 // ── Response Parser ────────────────────────────────────────────────────────
 
-function parseComments(raw: string, expectedCount: number): string[] {
-  if (!raw || raw.trim() === "[]") return [];
+function parseOutput(raw: string, expectedCount: number): {
+  assessment: string;
+  comments: string[];
+} {
+  let result = { assessment: "", comments: [] as string[] };
+  if (!raw || raw.trim() === "[]") return result;
 
   let cleaned = raw.trim();
 
   // Remove markdown code fences
   cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
 
-  // Try parsing as JSON array
-  const arrayMatch = cleaned.match(/^\[[\s\S]*\]$/);
-  if (arrayMatch) {
+  // Extract ASSESSMENT prefix
+  const assessmentMatch = cleaned.match(/^ASSESSMENT:\s*(.+?)(?:\.|$)/im);
+  if (assessmentMatch) {
+    result.assessment = assessmentMatch[1].trim();
+    // Remove the assessment line to get to the JSON
+    cleaned = cleaned.replace(/^ASSESSMENT:\s*.+/im, "").trim();
+  }
+
+  const parseComments = (text: string): string[] => {
+    // Try parsing as JSON array
+    const arrayMatch = text.match(/^\[[\s\S]*\]$/);
+    if (arrayMatch) {
+      try {
+        const parsed = JSON.parse(arrayMatch[0]);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((c: unknown) => String(c).trim()).filter(Boolean);
+        }
+      } catch {
+        // Fall through
+      }
+    }
+
+    // Try finding an array within the text
+    const embeddedMatch = text.match(/\[[\s\S]*?\]/);
+    if (embeddedMatch) {
+      try {
+        const parsed = JSON.parse(embeddedMatch[0]);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((c: unknown) => String(c).trim()).filter(Boolean);
+        }
+      } catch {
+        // Fall through
+      }
+    }
+
+    // Try parsing if AI returned an object with comments key
     try {
-      const parsed = JSON.parse(arrayMatch[0]);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((c) => String(c).trim()).filter(Boolean);
+      const obj = JSON.parse(text);
+      if (obj.comments && Array.isArray(obj.comments)) {
+        return obj.comments.map((c: unknown) => String(c).trim()).filter(Boolean);
+      }
+      if (obj.responses && Array.isArray(obj.responses)) {
+        return obj.responses.map((c: unknown) => String(c).trim()).filter(Boolean);
       }
     } catch {
       // Fall through
     }
-  }
 
-  // Try finding an array within the text
-  const embeddedMatch = cleaned.match(/\[[\s\S]*?\]/);
-  if (embeddedMatch) {
-    try {
-      const parsed = JSON.parse(embeddedMatch[0]);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((c) => String(c).trim()).filter(Boolean);
-      }
-    } catch {
-      // Fall through
+    // Last resort: split by double newlines or numbered items
+    const splitByNewlines = text
+      .split(/\n{2,}/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 10 && !s.startsWith("{") && !s.startsWith("<"));
+    if (splitByNewlines.length >= expectedCount) {
+      return splitByNewlines.slice(0, expectedCount);
     }
-  }
 
-  // Try parsing if AI returned an object with comments key
-  try {
-    const obj = JSON.parse(cleaned);
-    if (obj.comments && Array.isArray(obj.comments)) {
-      return obj.comments.map((c: unknown) => String(c).trim()).filter(Boolean);
+    // Split by numbered items (e.g., "1. comment" or "1) comment")
+    const numbered = text
+      .split(/\d+[.)]\s+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 10);
+    if (numbered.length >= expectedCount) {
+      return numbered.slice(0, expectedCount);
     }
-    if (obj.responses && Array.isArray(obj.responses)) {
-      return obj.responses.map((c: unknown) => String(c).trim()).filter(Boolean);
-    }
-  } catch {
-    // Fall through
-  }
 
-  // Last resort: split by double newlines or numbered items
-  const splitByNewlines = cleaned
-    .split(/\n{2,}/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 10 && !s.startsWith("{") && !s.startsWith("<"));
-  if (splitByNewlines.length >= expectedCount) {
-    return splitByNewlines.slice(0, expectedCount);
-  }
+    return [];
+  };
 
-  // Split by numbered items (e.g., "1. comment" or "1) comment")
-  const numbered = cleaned
-    .split(/\d+[.)]\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 10);
-  if (numbered.length >= expectedCount) {
-    return numbered.slice(0, expectedCount);
-  }
-
-  return [];
+  result.comments = parseComments(cleaned);
+  return result;
 }
 
 // ── Main Handler ──────────────────────────────────────────────────────────
@@ -772,7 +1027,7 @@ serve(async (req) => {
       );
     }
 
-    const rateLimit = checkRateLimit(user.id);
+    const rateLimit = await checkRateLimit(supabase, user.id);
     if (!rateLimit.allowed) {
       return new Response(
         JSON.stringify({
@@ -821,10 +1076,24 @@ serve(async (req) => {
       postContent = await extractImageText(image_base64, GROQ_API_KEY, GROQ_BASE_URL, groqController.signal);
     }
 
+    // ── GitHub Repo Mode: Fetch repo info and README ──
+    if (input_type === "github") {
+      if (!postContent) throw new Error("Please paste a GitHub repository URL.");
+      const fetched = await fetchGitHubContent(postContent);
+      postContent = formatUrlContent(fetched, platform || "GitHub");
+    }
+
+    // ── npm Package Mode: Fetch package info and README ──
+    if (input_type === "npm") {
+      if (!postContent) throw new Error("Please paste an npm package name or URL.");
+      const fetched = await fetchNpmContent(postContent);
+      postContent = formatUrlContent(fetched, platform || "GitHub");
+    }
+
     if (!postContent) {
       clearTimeout(groqTimeout);
       return new Response(
-        JSON.stringify({ error: "No content to generate comments for. Please provide text, a URL, or an image." }),
+        JSON.stringify({ error: "No content to generate comments for. Please provide text, a URL, an image, a GitHub repo, or an npm package." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -832,6 +1101,40 @@ serve(async (req) => {
     // Truncate content to prevent excessive token usage
     if (postContent.length > 12000) {
       postContent = postContent.slice(0, 12000) + "\n\n[... content truncated for length]";
+    }
+
+    // ── Fetch profile (AI Memory) for voice personalization ──
+    let profile: { full_name?: string; profession?: string; industry?: string;
+      target_audience?: string; use_case?: string } = {};
+    let voiceSamples: string[] = [];
+    let plan = "free";
+    try {
+      const [profileResult, voiceResult, subResult] = await Promise.all([
+        supabase.from("profiles").select("full_name, profession, industry, target_audience, use_case").eq("user_id", user.id).maybeSingle(),
+        supabase.from("voice_samples").select("content").eq("user_id", user.id).order("created_at", { ascending: true }),
+        supabase.from("subscriptions").select("plan").eq("user_id", user.id).eq("status", "active").maybeSingle(),
+      ]);
+      if (profileResult.data) profile = profileResult.data;
+      if (voiceResult.data) voiceSamples = voiceResult.data.map((s: { content: string }) => s.content);
+      if (subResult.data) plan = subResult.data.plan;
+    } catch {
+      // Non-critical: continue without profile if fetch fails
+    }
+
+    // ── Pro feature gating ──
+    if (plan !== "pro") {
+      if (commentCount > 3) {
+        return new Response(
+          JSON.stringify({ error: "Free plan is limited to 3 variations. Upgrade to Pro for up to 5." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      if (language !== "en") {
+        return new Response(
+          JSON.stringify({ error: "Free plan supports English only. Upgrade to Pro for 9 languages." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
     }
 
     const systemPrompt = buildSystemPrompt({
@@ -845,6 +1148,8 @@ serve(async (req) => {
       commentCount,
       single: single === "true",
       variationNumber: variation_number || null,
+      profile,
+      voiceSamples,
     });
 
     // ── Call Groq API with automatic model fallback ──
@@ -879,17 +1184,20 @@ serve(async (req) => {
       throw new Error("AI returned an empty response. Please try again.");
     }
 
-    const comments = parseComments(rawOutput, commentCount);
+    const parsed = parseOutput(rawOutput, commentCount);
 
-    if (!comments.length) {
+    if (!parsed.comments.length) {
       throw new Error("Could not parse AI response. Please try again.");
     }
 
     // Ensure we return exactly the requested count
-    const finalComments = comments.slice(0, commentCount);
+    const finalComments = parsed.comments.slice(0, commentCount);
 
     return new Response(
-      JSON.stringify({ comments: finalComments }),
+      JSON.stringify({
+        comments: finalComments,
+        assessment: parsed.assessment || undefined,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {

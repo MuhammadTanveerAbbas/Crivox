@@ -32,7 +32,7 @@ const tones = [
   { label: "Authoritative", icon: Shield },
 ] as const;
 
-const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Other"] as const;
+const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Hacker News", "Indie Hackers", "GitHub", "Threads", "Other"] as const;
 const languages = [
   { value: "en", label: "English" }, { value: "es", label: "Spanish" }, { value: "fr", label: "French" },
   { value: "de", label: "German" }, { value: "pt", label: "Portuguese" }, { value: "hi", label: "Hindi" },
@@ -76,14 +76,14 @@ const BulkGeneratePage = () => {
     let allSucceeded = true;
     for (const row of validRows) {
       try {
-        const comments = await generateComments({
+        const result = await generateComments({
           content: row.content, tone, platform, length, language,
           input_type: row.type,
           include_emoji: includeEmoji, include_hashtags: includeHashtags, include_cta: includeCTA,
           userId: user?.id,
         });
-        setRows((prev) => prev.map((r) => r.id === row.id ? { ...r, comments, loading: false } : r));
-        await supabase.from("comment_history").insert({ user_id: user!.id, input_type: row.type, input_content: row.content.slice(0, 500), platform, tone, length, generated_comments: comments });
+        setRows((prev) => prev.map((r) => r.id === row.id ? { ...r, comments: result.comments, loading: false } : r));
+        await supabase.from("comment_history").insert({ user_id: user!.id, input_type: row.type, input_content: row.content.slice(0, 500), platform, tone, length, generated_comments: result.comments });
       } catch {
         setRows((prev) => prev.map((r) => r.id === row.id ? { ...r, loading: false } : r));
         toast.error(`Failed to generate for post ${row.id}`);

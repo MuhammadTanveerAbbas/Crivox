@@ -27,7 +27,7 @@ interface QueueItem {
   completed_at: string | null;
 }
 
-const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Other"] as const;
+const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Hacker News", "Indie Hackers", "GitHub", "Threads", "Other"] as const;
 
 const QueuePage = () => {
   const { user } = useAuth();

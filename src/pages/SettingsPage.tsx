@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
-import { Sun, Moon, LogOut, Trash2, User, Save, Languages, AlertTriangle, Sparkles } from "lucide-react";
+import { Sun, Moon, LogOut, Trash2, User, Save, Languages, AlertTriangle, Sparkles, Mic, Plus, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { profileSchema, aiMemorySchema } from "@/lib/schemas";
 
-const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Other"] as const;
+const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Hacker News", "Indie Hackers", "GitHub", "Threads", "Other"] as const;
 const toneOptions = ["Professional", "Casual", "Witty", "Supportive", "Bold", "Educational", "Insightful", "Authoritative"] as const;
 const languages = [
   { value: "en", label: "English" }, { value: "es", label: "Spanish" }, { value: "fr", label: "French" },
@@ -39,12 +40,20 @@ const SettingsPage = () => {
   const [memory, setMemory] = useState({ full_name: "", profession: "", industry: "", target_audience: "", use_case: "" });
   const [editingMemory, setEditingMemory] = useState(false);
   const [savingMemory, setSavingMemory] = useState(false);
+  const [voiceSamples, setVoiceSamples] = useState<{ id: string; content: string }[]>([]);
+  const [newVoiceSample, setNewVoiceSample] = useState("");
+  const [voiceSaving, setVoiceSaving] = useState(false);
+  const [deletingSample, setDeletingSample] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("display_name, default_tone, default_platform, default_language, full_name, profession, industry, target_audience, use_case")
       .eq("user_id", user.id).maybeSingle()
       .then(({ data }) => {
+        supabase.from("voice_samples").select("id, content").eq("user_id", user!.id).order("created_at", { ascending: true })
+          .then(({ data: samples }) => {
+            if (samples) setVoiceSamples(samples as { id: string; content: string }[]);
+          });
         if (data) {
           setDisplayName(data.display_name || "");
           setDefaultTone(data.default_tone || "Professional");
@@ -244,6 +253,72 @@ const SettingsPage = () => {
               {!Object.values(memory).some(v => v) && <p className="text-muted-foreground text-xs">No memory set yet</p>}
             </div>
           )}
+        </div>
+
+        {/* Voice Profile */}
+        <div className={card}>
+          <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Mic className="h-4 w-4 text-muted-foreground" /> Voice Profile
+          </h3>
+          <p className="text-xs text-muted-foreground mb-3">Paste 2-3 examples of comments you have written before. Crivox will match your natural voice and rhythm.</p>
+
+          {voiceSamples.length > 0 && (
+            <div className="space-y-2 mb-3">
+              {voiceSamples.map((sample) => (
+                <div key={sample.id} className="flex items-start gap-2 bg-accent rounded-lg p-3">
+                  <p className="flex-1 text-sm text-foreground whitespace-pre-wrap leading-relaxed line-clamp-3">{sample.content}</p>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground"
+                    disabled={deletingSample === sample.id}
+                    onClick={async () => {
+                      setDeletingSample(sample.id);
+                      const { error } = await supabase.from("voice_samples").delete().eq("id", sample.id);
+                      if (error) toast.error("Failed to remove");
+                      else {
+                        setVoiceSamples((prev) => prev.filter((s) => s.id !== sample.id));
+                        toast.success("Sample removed");
+                      }
+                      setDeletingSample(null);
+                    }}>
+                    {deletingSample === sample.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {voiceSamples.length < 3 && (
+            <div className="space-y-2">
+              <Textarea placeholder="Paste a comment you have written before..." value={newVoiceSample} onChange={(e) => setNewVoiceSample(e.target.value)} rows={3} className="text-sm" />
+              <Button size="sm" className="gap-1.5" disabled={!newVoiceSample.trim() || voiceSaving}
+                onClick={async () => {
+                  setVoiceSaving(true);
+                  const { data, error } = await supabase.from("voice_samples").insert({ user_id: user!.id, content: newVoiceSample.trim() }).select("id, content").single();
+                  if (error) toast.error("Failed to save");
+                  else if (data) {
+                    setVoiceSamples((prev) => [...prev, data as { id: string; content: string }]);
+                    setNewVoiceSample("");
+                    toast.success("Voice sample saved");
+                  }
+                  setVoiceSaving(false);
+                }}>
+                <Plus className="h-3.5 w-3.5" /> Add Sample
+              </Button>
+            </div>
+          )}
+          {voiceSamples.length >= 3 && (
+            <p className="text-xs text-muted-foreground">3 samples maximum. Remove one to add a new one.</p>
+          )}
+        </div>
+
+        {/* Billing */}
+        <div className={card}>
+          <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-muted-foreground" /> Billing
+          </h3>
+          <p className="text-xs text-muted-foreground mb-3">Manage your subscription and payment details</p>
+          <Button size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/pricing")}>
+            <Sparkles className="h-3.5 w-3.5" /> View Plans
+          </Button>
         </div>
 
         {/* Theme */}

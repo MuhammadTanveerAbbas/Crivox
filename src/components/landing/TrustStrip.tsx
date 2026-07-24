@@ -3,7 +3,7 @@ import { Shield, Zap, Globe, Type } from "lucide-react";
 const items = [
   { icon: Zap, text: "Powered by Groq AI" },
   { icon: Type, text: "8 tone styles" },
-  { icon: Globe, text: "9 languages" },
+  { icon: Globe, text: "9 languages on Pro" },
   { icon: Shield, text: "Free to start" },
 ];
 

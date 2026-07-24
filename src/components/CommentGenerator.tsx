@@ -12,6 +12,7 @@ import {
   Link, Type, ImageIcon, Copy, Check, Sparkles, RefreshCw, Pencil, Share2, BookmarkPlus,
   Briefcase, Coffee, Laugh, Heart, Flame, GraduationCap, Lightbulb, Shield,
   Hash, SmilePlus, MousePointerClick, Languages, Command, CopyPlus, CalendarPlus,
+  Github, Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,7 +37,7 @@ const tones = [
 ] as const;
 
 const lengths = ["Short", "Medium", "Long", "AI Decides"] as const;
-const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Other"] as const;
+const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Hacker News", "Indie Hackers", "GitHub", "Threads", "Other"] as const;
 const languages = [
   { value: "en", label: "English" }, { value: "es", label: "Spanish" },
   { value: "fr", label: "French" }, { value: "de", label: "German" },
@@ -58,6 +59,8 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   const [tab, setTab] = useState(prefill?.inputType ?? "text");
   const [url, setUrl] = useState(prefill?.inputType === "url" ? (prefill?.content ?? "") : "");
   const [text, setText] = useState(prefill?.inputType !== "url" ? (prefill?.content ?? "") : "");
+  const [githubRepo, setGithubRepo] = useState(prefill?.inputType === "github" ? (prefill?.content ?? "") : "");
+  const [npmPackage, setNpmPackage] = useState(prefill?.inputType === "npm" ? (prefill?.content ?? "") : "");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -72,6 +75,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
 
   const [loading, setLoading] = useState(false);
   const [comments, setComments] = useState<string[]>([]);
+  const [assessment, setAssessment] = useState<string | undefined>();
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
@@ -95,15 +99,16 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   }, [user, prefill]);
 
   const handleGenerate = useCallback(async () => {
-    const resolvedContent = tab === "url" ? url : tab === "text" ? text : tab === "image" && imageFile ? "[Image uploaded]" : "";
+    const resolvedContent = tab === "url" ? url : tab === "text" ? text : tab === "github" ? githubRepo : tab === "npm" ? npmPackage : tab === "image" && imageFile ? "[Image uploaded]" : "";
     if (!resolvedContent && tab !== "image") { toast.error("Please provide some content first"); return; }
     if (tab === "image" && !imageFile) { toast.error("Please upload an image first"); return; }
 
     setLoading(true);
     setComments([]);
+    setAssessment(undefined);
 
     try {
-      const generated = await generateComments({
+      const result = await generateComments({
         content: tab === "image" ? "" : resolvedContent,
         image_base64: tab === "image" ? imagePreview ?? undefined : undefined,
         input_type: tab as "url" | "text" | "image",
@@ -113,11 +118,12 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
         userId: user?.id,
       });
 
-      setComments(generated);
+      setComments(result.comments);
+      setAssessment(result.assessment);
       await supabase.from("comment_history").insert({
         user_id: user!.id, input_type: tab,
         input_content: tab === "image" ? "[Image]" : resolvedContent.slice(0, 500),
-        platform, tone, length, generated_comments: generated,
+        platform, tone, length, generated_comments: result.comments,
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to generate comments";
@@ -156,8 +162,8 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   const handleRegenerate = async (idx: number) => {
     setRegeneratingIdx(idx);
     try {
-      const resolvedContent = tab === "url" ? url : tab === "text" ? text : "";
-      const generated = await generateComments({
+      const resolvedContent = tab === "url" ? url : tab === "text" ? text : tab === "github" ? githubRepo : tab === "npm" ? npmPackage : "";
+      const result = await generateComments({
         content: tab === "image" ? "" : resolvedContent,
         image_base64: tab === "image" ? imagePreview ?? undefined : undefined,
         input_type: tab as "url" | "text" | "image",
@@ -165,7 +171,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
         include_emoji: includeEmoji, include_hashtags: includeHashtags, include_cta: includeCTA,
         single: true, variation_number: idx + 1, userId: user?.id,
       });
-      const replacement = generated[0];
+      const replacement = result.comments[0];
       if (replacement) {
         setComments((prev) => prev.map((c, i) => (i === idx ? replacement : c)));
         toast.success("Comment regenerated!");
@@ -245,13 +251,17 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
       {/* Input */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="mb-3">
+          <TabsList className="mb-3 flex-wrap">
             <TabsTrigger value="url" className="gap-1.5 text-xs"><Link className="h-3.5 w-3.5" /> URL</TabsTrigger>
             <TabsTrigger value="text" className="gap-1.5 text-xs"><Type className="h-3.5 w-3.5" /> Text</TabsTrigger>
+            <TabsTrigger value="github" className="gap-1.5 text-xs"><Github className="h-3.5 w-3.5" /> GitHub</TabsTrigger>
+            <TabsTrigger value="npm" className="gap-1.5 text-xs"><Package className="h-3.5 w-3.5" /> npm</TabsTrigger>
             <TabsTrigger value="image" className="gap-1.5 text-xs"><ImageIcon className="h-3.5 w-3.5" /> Image</TabsTrigger>
           </TabsList>
           <TabsContent value="url"><Input placeholder="https://linkedin.com/posts/..." value={url} onChange={(e) => setUrl(e.target.value)} /></TabsContent>
           <TabsContent value="text"><Textarea placeholder="Paste the post content here..." value={text} onChange={(e) => setText(e.target.value)} rows={4} /></TabsContent>
+          <TabsContent value="github"><Input placeholder="github.com/owner/repo" value={githubRepo} onChange={(e) => setGithubRepo(e.target.value)} /></TabsContent>
+          <TabsContent value="npm"><Input placeholder="npm package name or npmjs.com/package/..." value={npmPackage} onChange={(e) => setNpmPackage(e.target.value)} /></TabsContent>
           <TabsContent value="image">
             <div className="space-y-2">
               <Input type="file" accept="image/*" onChange={handleImageChange} />
@@ -376,18 +386,27 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
 
       {/* Results */}
       {!loading && comments.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-3">
+          {assessment && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+              {assessment.includes("thin") || assessment.includes("light on specifics") || assessment.includes("engagement bait") || assessment.includes("no real content") ? (
+                <p>This post is light on specifics. Here are a few options, but consider whether a comment adds real value here.</p>
+              ) : (
+                <p>{assessment}</p>
+              )}
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium text-foreground">Results</h2>
             <div className="flex items-center gap-1.5">
-              <Button variant="outline" size="sm" className="gap-1 rounded-xl" onClick={handleCopyAll}><CopyPlus className="h-3 w-3" /> Copy all</Button>
-              <Button variant="outline" size="sm" className="gap-1 rounded-xl" onClick={handleShare}><Share2 className="h-3 w-3" /> Share</Button>
+              <Button variant="outline" size="sm" className="gap-1.5 rounded-xl shadow-sm" onClick={handleCopyAll}><CopyPlus className="h-3.5 w-3.5" /> Copy all</Button>
+              <Button variant="outline" size="sm" className="gap-1.5 rounded-xl shadow-sm" onClick={handleShare}><Share2 className="h-3.5 w-3.5" /> Share</Button>
             </div>
           </div>
           {comments.map((comment, idx) => (
-            <div key={idx} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div key={idx} className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-primary">#{idx + 1}</span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary bg-primary/5 px-2 py-0.5 rounded-full">#{idx + 1}</span>
                 <span className="text-xs text-muted-foreground">{comment.length} chars</span>
               </div>
 
@@ -395,7 +414,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
                 <div className="space-y-2">
                   <Textarea defaultValue={comment} rows={3} className="text-sm" id={`edit-${idx}`} />
                   <div className="flex gap-1.5">
-                    <Button size="sm" onClick={() => { const el = document.getElementById(`edit-${idx}`) as HTMLTextAreaElement; if (el) handleEditSave(idx, el.value); }}>Save</Button>
+                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { const el = document.getElementById(`edit-${idx}`) as HTMLTextAreaElement; if (el) handleEditSave(idx, el.value); }}>Save</Button>
                     <Button size="sm" variant="ghost" onClick={() => setEditingIdx(null)}>Cancel</Button>
                   </div>
                 </div>
@@ -405,20 +424,20 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
 
               {editingIdx !== idx && (
                 <div className="flex items-center gap-0.5 mt-3 pt-3 border-t border-border flex-wrap gap-y-1">
-                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2" onClick={() => setEditingIdx(idx)}>
+                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 hover:text-foreground hover:bg-accent/50" onClick={() => setEditingIdx(idx)}>
                     <Pencil className="h-3 w-3" /> Edit
                   </Button>
-                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2" onClick={() => handleRegenerate(idx)} disabled={regeneratingIdx === idx}>
+                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 hover:text-foreground hover:bg-accent/50" onClick={() => handleRegenerate(idx)} disabled={regeneratingIdx === idx}>
                     <RefreshCw className={cn("h-3 w-3", regeneratingIdx === idx && "animate-spin")} />
                     {regeneratingIdx === idx ? "..." : "Redo"}
                   </Button>
-                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2" onClick={() => handleSaveAsTemplate(comment)}>
+                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 hover:text-foreground hover:bg-accent/50" onClick={() => handleSaveAsTemplate(comment)}>
                     <BookmarkPlus className="h-3 w-3" /> Save
                   </Button>
-                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2" onClick={() => handleAddToQueue(comment)}>
+                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 hover:text-foreground hover:bg-accent/50" onClick={() => handleAddToQueue(comment)}>
                     <CalendarPlus className="h-3 w-3" /> Queue
                   </Button>
-                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 ml-auto" onClick={() => handleCopy(comment, idx)}>
+                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 ml-auto hover:text-foreground hover:bg-accent/50" onClick={() => handleCopy(comment, idx)}>
                     {copiedIdx === idx ? <><Check className="h-3 w-3 text-primary" /> Copied</> : <><Copy className="h-3 w-3" /> Copy</>}
                   </Button>
                 </div>

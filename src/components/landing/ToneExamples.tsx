@@ -13,7 +13,7 @@ const examples = [
   {
     tone: "Casual",
     Icon: Coffee,
-    text: "Love this take! Totally agree  keeping it simple is the way to go. Shared it with my team!",
+    text: "Love this take! Totally agree, keeping it simple is the way to go. Shared it with my team!",
   },
   {
     tone: "Witty",
@@ -23,7 +23,7 @@ const examples = [
   {
     tone: "Supportive",
     Icon: Heart,
-    text: "What an inspiring journey! Thanks for sharing  this will help so many people just starting out.",
+    text: "What an inspiring journey! Thanks for sharing, this will help so many people just starting out.",
   },
 ];
 
