@@ -106,7 +106,7 @@ const TemplatesPage = () => {
       content: content,
       input_type: "text",
     });
-    navigate(`/dashboard?${params.toString()}`);
+    navigate(`/dashboard/generate?${params.toString()}`);
     toast.success("Template loaded in generator!");
   };
 

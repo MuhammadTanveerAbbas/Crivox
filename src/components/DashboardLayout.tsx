@@ -25,14 +25,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import OnboardingQuestionnaire from "@/components/OnboardingQuestionnaire";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
-  { label: "Generator", icon: Zap, path: "/dashboard", tourId: "generator" },
-  { label: "Bulk Generate", icon: LayoutGrid, path: "/dashboard/bulk", tourId: "bulk" },
+  { label: "Dashboard", icon: BarChart3, path: "/dashboard", tourId: "dashboard" },
+  { label: "Generator", icon: Zap, path: "/dashboard/generate", tourId: "generator" },
+  { label: "Bulk", icon: LayoutGrid, path: "/dashboard/bulk", tourId: "bulk" },
   { label: "Queue", icon: CalendarClock, path: "/dashboard/queue", tourId: "queue" },
   { label: "Templates", icon: BookOpen, path: "/dashboard/templates", tourId: "templates" },
-  { label: "Stats", icon: BarChart3, path: "/dashboard/stats", tourId: "stats" },
   { label: "History", icon: History, path: "/dashboard/history", tourId: "history" },
   { label: "Settings", icon: Settings, path: "/dashboard/settings", tourId: "settings" },
 ];
@@ -60,7 +59,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   useEffect(() => {
-    if (!user || location.pathname !== "/dashboard") return;
+    if (!user || (location.pathname !== "/dashboard" && location.pathname !== "/dashboard/generate")) return;
     const checkQuestionnaire = async () => {
       const { data: profile } = await supabase
         .from("profiles")
@@ -85,9 +84,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   return (
     <TooltipProvider delayDuration={0}>
       <div className="min-h-screen flex bg-background">
+        {/* Overlay */}
         {mobileOpen && (
           <div
-            className="fixed inset-0 bg-black/40 z-30 md:hidden"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 md:hidden animate-in fade-in duration-200"
             onClick={() => setMobileOpen(false)}
           />
         )}
@@ -95,10 +95,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed md:static inset-y-0 left-0 z-40 flex flex-col bg-card border-r border-border transition-all duration-200 shrink-0",
+            "fixed inset-y-0 left-0 z-40 flex flex-col bg-card border-r border-border shrink-0",
             isMobile
-              ? cn("w-64", mobileOpen ? "translate-x-0" : "-translate-x-full")
-              : cn(collapsed ? "w-[60px]" : "w-56", "translate-x-0")
+              ? cn("w-64 transition-transform duration-300 ease-in-out", mobileOpen ? "translate-x-0" : "-translate-x-full")
+              : cn(collapsed ? "w-[60px]" : "w-56", "md:sticky md:top-0 md:h-screen md:self-start translate-x-0")
           )}
         >
           {/* Logo */}
@@ -113,14 +113,14 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
               <span className="font-display text-lg text-foreground truncate">Crivox</span>
             )}
             {isMobile && (
-              <Button variant="ghost" size="icon" className="ml-auto h-7 w-7" onClick={() => setMobileOpen(false)}>
+              <Button variant="ghost" size="icon" className="ml-auto h-10 w-10 min-h-[44px] min-w-[44px] -mr-1" onClick={() => setMobileOpen(false)}>
                 <X className="h-4 w-4" />
               </Button>
             )}
           </div>
 
           {/* Nav */}
-          <nav className={cn("flex-1 py-3 space-y-0.5", collapsed && !isMobile ? "px-1.5" : "px-3")}>
+          <nav className={cn("flex-1 py-3 space-y-0.5", collapsed && !isMobile ? "px-1.5" : isMobile ? "px-3" : "px-3")}>
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               const btn = (
@@ -130,7 +130,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                   onClick={() => { navigate(item.path); setMobileOpen(false); }}
                   className={cn(
                     "flex items-center w-full rounded-xl text-sm transition-all duration-150",
-                    collapsed && !isMobile ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-2.5",
+                    collapsed && !isMobile ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-2.5 min-h-[44px]",
                     isActive
                       ? "bg-primary/10 text-primary font-medium shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
@@ -138,9 +138,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 >
                   <item.icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
                   {(!collapsed || isMobile) && item.label}
-                  {isActive && !collapsed && !isMobile && (
-                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
-                  )}
                 </button>
               );
 
@@ -157,19 +154,18 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
           </nav>
 
           {/* Bottom section */}
-          {!isMobile && (
-            <div className={cn("pb-4 space-y-1", collapsed ? "px-1.5" : "px-3")}>
-              {/* Sign out */}
-              <button
-                onClick={async () => { await supabase.auth.signOut(); navigate("/", { replace: true }); }}
-                className={cn(
-                  "flex items-center w-full rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-150",
-                  collapsed ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-2.5"
-                )}
-              >
-                <LogOut className="h-4 w-4 shrink-0" />
-                {!collapsed && <span>Sign out</span>}
-              </button>
+          <div className={cn("pb-4 space-y-1", collapsed && !isMobile ? "px-1.5" : isMobile ? "px-3" : "px-3")}>
+            <button
+              onClick={async () => { await supabase.auth.signOut(); navigate("/", { replace: true }); }}
+              className={cn(
+                "flex items-center w-full rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-150",
+                collapsed && !isMobile ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-2.5 min-h-[44px]"
+              )}
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              {(!collapsed || isMobile) && <span>Sign out</span>}
+            </button>
+            {!isMobile && (
               <button
                 onClick={() => setCollapsed(!collapsed)}
                 className={cn(
@@ -179,12 +175,12 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
               >
                 {collapsed ? <PanelLeft className="h-4 w-4" /> : <><PanelLeftClose className="h-4 w-4" /><span>Collapse sidebar</span></>}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </aside>
 
         {/* Main */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 max-h-screen overflow-y-auto">
           {/* Topbar */}
           <header className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 h-14 border-b border-border bg-card shrink-0">
             <Button variant="ghost" size="icon" className="md:hidden h-11 w-11 min-h-[44px] min-w-[44px]" onClick={() => setMobileOpen(true)}>
@@ -211,7 +207,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
             {/* Right side */}
             <div className="ml-auto flex items-center gap-2">
-              <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-xs font-semibold text-white shrink-0 hover:opacity-90 transition-opacity cursor-pointer">

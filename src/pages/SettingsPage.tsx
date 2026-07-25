@@ -4,12 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
-import { Sun, Moon, LogOut, Trash2, User, Save, Languages, AlertTriangle, Sparkles, Mic, Plus, X, Loader2 } from "lucide-react";
+import { LogOut, Trash2, User, Save, Languages, AlertTriangle, Sparkles, Mic, Plus, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -17,18 +15,10 @@ import {
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { profileSchema, aiMemorySchema } from "@/lib/schemas";
-
-const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Hacker News", "Indie Hackers", "GitHub", "Threads", "Other"] as const;
-const toneOptions = ["Professional", "Casual", "Witty", "Supportive", "Bold", "Educational", "Insightful", "Authoritative"] as const;
-const languages = [
-  { value: "en", label: "English" }, { value: "es", label: "Spanish" }, { value: "fr", label: "French" },
-  { value: "de", label: "German" }, { value: "pt", label: "Portuguese" }, { value: "hi", label: "Hindi" },
-  { value: "ar", label: "Arabic" }, { value: "zh", label: "Chinese" }, { value: "ja", label: "Japanese" },
-] as const;
+import { TONE_LABELS, PLATFORMS, LANGUAGES } from "@/lib/constants";
 
 const SettingsPage = () => {
   const { user, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
   const [displayName, setDisplayName] = useState("");
@@ -137,11 +127,6 @@ const SettingsPage = () => {
     else toast.success("Templates deleted");
   };
 
-  const themes = [
-    { value: "light", label: "Light", icon: Sun },
-    { value: "dark", label: "Dark", icon: Moon },
-  ];
-
   const card = "bg-card border border-border rounded-xl shadow-sm p-5 space-y-3";
 
   return (
@@ -181,14 +166,14 @@ const SettingsPage = () => {
               <label className="text-xs font-medium text-foreground mb-1 block">Tone</label>
               <Select value={defaultTone} onValueChange={setDefaultTone}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{toneOptions.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                <SelectContent>{TONE_LABELS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
               <label className="text-xs font-medium text-foreground mb-1 block">Platform</label>
               <Select value={defaultPlatform} onValueChange={setDefaultPlatform}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{platforms.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                <SelectContent>{PLATFORMS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
@@ -197,7 +182,7 @@ const SettingsPage = () => {
               </label>
               <Select value={defaultLanguage} onValueChange={setDefaultLanguage}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{languages.map((l) => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent>
+                <SelectContent>{LANGUAGES.map((l) => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
@@ -319,30 +304,6 @@ const SettingsPage = () => {
           <Button size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/pricing")}>
             <Sparkles className="h-3.5 w-3.5" /> View Plans
           </Button>
-        </div>
-
-        {/* Theme */}
-        <div className={card}>
-          <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-            <Sun className="h-4 w-4 text-muted-foreground" /> Appearance
-          </h3>
-          <div className="flex gap-2">
-            {themes.map((t) => (
-              <button
-                key={t.value}
-                onClick={() => setTheme(t.value)}
-                className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium flex-1 justify-center border",
-                  theme === t.value
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card text-muted-foreground border-border hover:bg-accent"
-                )}
-              >
-                <t.icon className="h-4 w-4" />
-                {t.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Data */}

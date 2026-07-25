@@ -9,7 +9,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
   Plus, Sparkles, Copy, Check, Download, X,
-  Briefcase, Coffee, Laugh, Heart, Flame, GraduationCap, Lightbulb, Shield,
   Hash, SmilePlus, MousePointerClick, Languages, CopyPlus,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -18,26 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { generateComments } from "@/lib/groq";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-
-const lengths = ["Short", "Medium", "Long", "AI Decides"] as const;
-
-const tones = [
-  { label: "Professional", icon: Briefcase },
-  { label: "Casual", icon: Coffee },
-  { label: "Witty", icon: Laugh },
-  { label: "Supportive", icon: Heart },
-  { label: "Bold", icon: Flame },
-  { label: "Educational", icon: GraduationCap },
-  { label: "Insightful", icon: Lightbulb },
-  { label: "Authoritative", icon: Shield },
-] as const;
-
-const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Hacker News", "Indie Hackers", "GitHub", "Threads", "Other"] as const;
-const languages = [
-  { value: "en", label: "English" }, { value: "es", label: "Spanish" }, { value: "fr", label: "French" },
-  { value: "de", label: "German" }, { value: "pt", label: "Portuguese" }, { value: "hi", label: "Hindi" },
-  { value: "ar", label: "Arabic" }, { value: "zh", label: "Chinese" }, { value: "ja", label: "Japanese" },
-] as const;
+import { TONES as tones, LENGTHS as lengths, PLATFORMS as platforms, LANGUAGES as languages } from "@/lib/constants";
 
 interface BulkRow {
   id: number;

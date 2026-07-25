@@ -2,49 +2,27 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import {
-  Link, Type, ImageIcon, Copy, Check, Sparkles, RefreshCw, Pencil, Share2, BookmarkPlus,
-  Briefcase, Coffee, Laugh, Heart, Flame, GraduationCap, Lightbulb, Shield,
+  Link, Type, ImageIcon, Copy, Sparkles, RefreshCw, Pencil, Share2, BookmarkPlus,
   Hash, SmilePlus, MousePointerClick, Languages, Command, CopyPlus, CalendarPlus,
-  Github, Package,
+  User, Settings2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateComments } from "@/lib/groq";
 import { cn } from "@/lib/utils";
+import { TONES as tones, LENGTHS as lengths, PLATFORMS as platforms, LANGUAGES as languages } from "@/lib/constants";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-const tones = [
-  { label: "Professional", icon: Briefcase },
-  { label: "Casual", icon: Coffee },
-  { label: "Witty", icon: Laugh },
-  { label: "Supportive", icon: Heart },
-  { label: "Bold", icon: Flame },
-  { label: "Educational", icon: GraduationCap },
-  { label: "Insightful", icon: Lightbulb },
-  { label: "Authoritative", icon: Shield },
-] as const;
-
-const lengths = ["Short", "Medium", "Long", "AI Decides"] as const;
-const platforms = ["LinkedIn", "Twitter/X", "Instagram", "Facebook", "Reddit", "Blog/Website", "Hacker News", "Indie Hackers", "GitHub", "Threads", "Other"] as const;
-const languages = [
-  { value: "en", label: "English" }, { value: "es", label: "Spanish" },
-  { value: "fr", label: "French" }, { value: "de", label: "German" },
-  { value: "pt", label: "Portuguese" }, { value: "hi", label: "Hindi" },
-  { value: "ar", label: "Arabic" }, { value: "zh", label: "Chinese" },
-  { value: "ja", label: "Japanese" },
-] as const;
 
 interface PrefillProps {
   tone?: string;
@@ -54,13 +32,28 @@ interface PrefillProps {
   content?: string;
 }
 
+const ChatAction = ({ icon: Icon, label, onClick, disabled, active, spinning }: { icon: any; label: string; onClick: () => void; disabled?: boolean; active?: boolean; spinning?: boolean }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={cn(
+      "inline-flex items-center justify-center gap-1 text-[10px] rounded-md transition-colors",
+      "min-h-[36px] sm:min-h-6 min-w-[36px] sm:min-w-0 sm:h-6 sm:px-1.5",
+      active
+        ? "text-green-500"
+        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+    )}
+  >
+    <Icon className={cn("h-3.5 w-3.5 sm:h-3 sm:w-3", spinning && "animate-spin")} />
+    <span className="sm:inline">{label}</span>
+  </button>
+);
+
 const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   const { user } = useAuth();
   const [tab, setTab] = useState(prefill?.inputType ?? "text");
   const [url, setUrl] = useState(prefill?.inputType === "url" ? (prefill?.content ?? "") : "");
   const [text, setText] = useState(prefill?.inputType !== "url" ? (prefill?.content ?? "") : "");
-  const [githubRepo, setGithubRepo] = useState(prefill?.inputType === "github" ? (prefill?.content ?? "") : "");
-  const [npmPackage, setNpmPackage] = useState(prefill?.inputType === "npm" ? (prefill?.content ?? "") : "");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -79,6 +72,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
   const genRef = useRef<() => Promise<void>>(async () => {});
   const loadingRef = useRef(false);
   const hasCommentsRef = useRef(false);
@@ -99,7 +93,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   }, [user, prefill]);
 
   const handleGenerate = useCallback(async () => {
-    const resolvedContent = tab === "url" ? url : tab === "text" ? text : tab === "github" ? githubRepo : tab === "npm" ? npmPackage : tab === "image" && imageFile ? "[Image uploaded]" : "";
+    const resolvedContent = tab === "url" ? url : tab === "text" ? text : tab === "image" && imageFile ? "[Image uploaded]" : "";
     if (!resolvedContent && tab !== "image") { toast.error("Please provide some content first"); return; }
     if (tab === "image" && !imageFile) { toast.error("Please upload an image first"); return; }
 
@@ -162,7 +156,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   const handleRegenerate = async (idx: number) => {
     setRegeneratingIdx(idx);
     try {
-      const resolvedContent = tab === "url" ? url : tab === "text" ? text : tab === "github" ? githubRepo : tab === "npm" ? npmPackage : "";
+      const resolvedContent = tab === "url" ? url : tab === "text" ? text : "";
       const result = await generateComments({
         content: tab === "image" ? "" : resolvedContent,
         image_base64: tab === "image" ? imagePreview ?? undefined : undefined,
@@ -230,222 +224,306 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5 w-full">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+    <div className="w-full max-w-5xl mx-auto flex flex-col min-h-[calc(100vh-8rem)] px-4 md:px-0">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 shrink-0">
+        <div>
           <h1 className="text-xl font-semibold text-foreground">Comment Generator</h1>
           <p className="text-muted-foreground text-sm mt-0.5">Generate AI-powered comments for any post</p>
         </div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="hidden md:flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground">
-              <Command className="h-3 w-3" />+Enter
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs"><strong>⌘+Enter</strong> Generate · <strong>⌘+⇧+C</strong> Copy first · <strong>Esc</strong> Clear</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-
-      {/* Input */}
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="mb-3 flex-wrap">
-            <TabsTrigger value="url" className="gap-1.5 text-xs"><Link className="h-3.5 w-3.5" /> URL</TabsTrigger>
-            <TabsTrigger value="text" className="gap-1.5 text-xs"><Type className="h-3.5 w-3.5" /> Text</TabsTrigger>
-            <TabsTrigger value="github" className="gap-1.5 text-xs"><Github className="h-3.5 w-3.5" /> GitHub</TabsTrigger>
-            <TabsTrigger value="npm" className="gap-1.5 text-xs"><Package className="h-3.5 w-3.5" /> npm</TabsTrigger>
-            <TabsTrigger value="image" className="gap-1.5 text-xs"><ImageIcon className="h-3.5 w-3.5" /> Image</TabsTrigger>
-          </TabsList>
-          <TabsContent value="url"><Input placeholder="https://linkedin.com/posts/..." value={url} onChange={(e) => setUrl(e.target.value)} /></TabsContent>
-          <TabsContent value="text"><Textarea placeholder="Paste the post content here..." value={text} onChange={(e) => setText(e.target.value)} rows={4} /></TabsContent>
-          <TabsContent value="github"><Input placeholder="github.com/owner/repo" value={githubRepo} onChange={(e) => setGithubRepo(e.target.value)} /></TabsContent>
-          <TabsContent value="npm"><Input placeholder="npm package name or npmjs.com/package/..." value={npmPackage} onChange={(e) => setNpmPackage(e.target.value)} /></TabsContent>
-          <TabsContent value="image">
-            <div className="space-y-2">
-              <Input type="file" accept="image/*" onChange={handleImageChange} />
-              {imagePreview && <img src={imagePreview} alt="Preview" className="rounded-md max-h-40 object-contain border border-border" />}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Controls */}
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
-        {/* Tone */}
-        <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Tone</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-            {tones.map((t) => (
-              <button
-                key={t.label}
-                onClick={() => setTone(t.label)}
-                className={cn(
-                  "flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-2 rounded-xl text-xs sm:text-sm border",
-                  tone === t.label
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-card text-foreground border-border hover:bg-accent"
-                )}
-              >
-                <t.icon className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{t.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Length */}
-        <div>
-          <label className="text-sm font-medium text-foreground mb-2 block">Length</label>
-          <div className="flex flex-wrap gap-1.5">
-            {lengths.map((l) => (
-              <button
-                key={l}
-                onClick={() => setLength(l)}
-                className={cn(
-                  "px-3 py-1.5 rounded-full text-sm border",
-                  length === l
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-card text-foreground border-border hover:bg-accent"
-                )}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Platform & Language */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 block">Platform</label>
-            <Select value={platform} onValueChange={setPlatform}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{platforms.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 flex items-center gap-1">
-              <Languages className="h-3.5 w-3.5 text-muted-foreground" /> Language
-            </label>
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{languages.map((l) => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Variations */}
-        <div>
-          <label className="text-sm font-medium text-foreground mb-1.5 block">
-            Variations: <span className="text-primary">{commentCount}</span>
-          </label>
-          <Slider value={[commentCount]} onValueChange={(v) => { const next = v[0]; if (next !== undefined) setCommentCount(next); }} min={1} max={5} step={1} className="w-full" />
-        </div>
-
-        {/* Toggles */}
-        <div className="flex flex-wrap gap-x-5 gap-y-2">
-          <div className="flex items-center gap-2">
-            <Switch id="emoji" checked={includeEmoji} onCheckedChange={setIncludeEmoji} />
-            <Label htmlFor="emoji" className="flex items-center gap-1 text-sm cursor-pointer"><SmilePlus className="h-3.5 w-3.5 text-muted-foreground" /> Emojis</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch id="hashtags" checked={includeHashtags} onCheckedChange={setIncludeHashtags} />
-            <Label htmlFor="hashtags" className="flex items-center gap-1 text-sm cursor-pointer"><Hash className="h-3.5 w-3.5 text-muted-foreground" /> Hashtags</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch id="cta" checked={includeCTA} onCheckedChange={setIncludeCTA} />
-            <Label htmlFor="cta" className="flex items-center gap-1 text-sm cursor-pointer"><MousePointerClick className="h-3.5 w-3.5 text-muted-foreground" /> CTA</Label>
-          </div>
-        </div>
-      </div>
-
-      {/* Generate */}
-      <Button
-        className="w-full gap-2 bg-primary text-primary-foreground rounded-xl font-medium shadow-sm hover:bg-primary/90"
-        size="lg"
-        onClick={handleGenerate}
-        disabled={loading}
-      >
-        <Sparkles className="h-4 w-4" />
-        {loading ? "Generating..." : `Generate ${commentCount} comment${commentCount > 1 ? "s" : ""}`}
-      </Button>
-
-      {/* Loading */}
-      {loading && (
-        <div className="space-y-2">
-          {Array.from({ length: commentCount }).map((_, i) => (
-            <div key={i} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-3/4" />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Results */}
-      {!loading && comments.length > 0 && (
-        <div className="space-y-3">
-          {assessment && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
-              {assessment.includes("thin") || assessment.includes("light on specifics") || assessment.includes("engagement bait") || assessment.includes("no real content") ? (
-                <p>This post is light on specifics. Here are a few options, but consider whether a comment adds real value here.</p>
-              ) : (
-                <p>{assessment}</p>
-              )}
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-foreground">Results</h2>
-            <div className="flex items-center gap-1.5">
-              <Button variant="outline" size="sm" className="gap-1.5 rounded-xl shadow-sm" onClick={handleCopyAll}><CopyPlus className="h-3.5 w-3.5" /> Copy all</Button>
-              <Button variant="outline" size="sm" className="gap-1.5 rounded-xl shadow-sm" onClick={handleShare}><Share2 className="h-3.5 w-3.5" /> Share</Button>
-            </div>
-          </div>
-          {comments.map((comment, idx) => (
-            <div key={idx} className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary bg-primary/5 px-2 py-0.5 rounded-full">#{idx + 1}</span>
-                <span className="text-xs text-muted-foreground">{comment.length} chars</span>
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="hidden md:flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground">
+                <Command className="h-3 w-3" />+Enter
               </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs"><strong>Cmd+Enter</strong> Generate &middot; <strong>Cmd+Shift+C</strong> Copy first &middot; <strong>Esc</strong> Clear</p>
+            </TooltipContent>
+          </Tooltip>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowSettings(!showSettings)}
+            className={cn(
+              "gap-1.5 rounded-xl text-xs min-h-[44px] sm:min-h-0",
+              showSettings && "bg-accent text-foreground"
+            )}
+          >
+            <Settings2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Controls</span>
+          </Button>
+        </div>
+      </div>
 
-              {editingIdx === idx ? (
-                <div className="space-y-2">
-                  <Textarea defaultValue={comment} rows={3} className="text-sm" id={`edit-${idx}`} />
-                  <div className="flex gap-1.5">
-                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { const el = document.getElementById(`edit-${idx}`) as HTMLTextAreaElement; if (el) handleEditSave(idx, el.value); }}>Save</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditingIdx(null)}>Cancel</Button>
+      <div className="flex gap-5 flex-1 min-h-0">
+        {/* Main chat area */}
+        <div className={cn("flex-1 flex flex-col min-w-0", showSettings && "lg:max-w-[calc(100%-320px)]")}>
+          {/* Chat thread - scrollable */}
+          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+            {!comments.length && !loading && (
+              <div className="flex flex-col items-center justify-center h-full min-h-[250px] sm:min-h-[400px] text-center">
+                <div className="h-14 w-14 rounded-2xl bg-accent flex items-center justify-center mb-4">
+                  <Sparkles className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-medium text-foreground mb-1">Ready to generate</p>
+                <p className="text-xs text-muted-foreground max-w-[220px]">
+                  Paste a post below, choose your tone and platform, then hit Generate
+                </p>
+              </div>
+            )}
+
+            {loading && (
+              <div className="space-y-3">
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] rounded-2xl rounded-bl-md bg-accent p-4">
+                    <Skeleton className="h-3 w-24 mb-2" />
+                    <Skeleton className="h-3 w-full mb-1" />
+                    <Skeleton className="h-3 w-3/4" />
                   </div>
                 </div>
-              ) : (
-                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{comment}</p>
-              )}
+                {Array.from({ length: commentCount }).map((_, i) => (
+                  <div key={i} className="flex justify-start">
+                    <div className="max-w-[80%] rounded-2xl rounded-tl-md bg-card border border-border p-4 shadow-sm">
+                      <Skeleton className="h-3 w-16 mb-2" />
+                      <Skeleton className="h-3 w-full mb-1" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-              {editingIdx !== idx && (
-                <div className="flex items-center gap-0.5 mt-3 pt-3 border-t border-border flex-wrap gap-y-1">
-                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 hover:text-foreground hover:bg-accent/50" onClick={() => setEditingIdx(idx)}>
-                    <Pencil className="h-3 w-3" /> Edit
-                  </Button>
-                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 hover:text-foreground hover:bg-accent/50" onClick={() => handleRegenerate(idx)} disabled={regeneratingIdx === idx}>
-                    <RefreshCw className={cn("h-3 w-3", regeneratingIdx === idx && "animate-spin")} />
-                    {regeneratingIdx === idx ? "..." : "Redo"}
-                  </Button>
-                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 hover:text-foreground hover:bg-accent/50" onClick={() => handleSaveAsTemplate(comment)}>
-                    <BookmarkPlus className="h-3 w-3" /> Save
-                  </Button>
-                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 hover:text-foreground hover:bg-accent/50" onClick={() => handleAddToQueue(comment)}>
-                    <CalendarPlus className="h-3 w-3" /> Queue
-                  </Button>
-                  <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground h-7 text-xs px-2 ml-auto hover:text-foreground hover:bg-accent/50" onClick={() => handleCopy(comment, idx)}>
-                    {copiedIdx === idx ? <><Check className="h-3 w-3 text-primary" /> Copied</> : <><Copy className="h-3 w-3" /> Copy</>}
-                  </Button>
+            {!loading && comments.length > 0 && (
+              <>
+                {/* User message - the input content */}
+                <div className="flex justify-end">
+                  <div className="max-w-[80%] rounded-2xl rounded-br-md bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="h-5 w-5 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
+                        <User className="h-3 w-3 text-primary" />
+                      </div>
+                      <span className="text-xs font-medium text-foreground">You</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {tab === "image" ? "Image" : platform}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap line-clamp-3">
+                      {tab === "url" ? url : tab === "text" ? text : tab === "image" ? "[Uploaded image]" : ""}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
+                      <span className="inline-flex items-center gap-1"><Sparkles className="h-2.5 w-2.5" />{tone}</span>
+                      <span>&middot;</span>
+                      <span>{length}</span>
+                      <span>&middot;</span>
+                      <span>{languages.find((l) => l.value === language)?.label}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Assessment */}
+                {assessment && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[80%] rounded-2xl rounded-tl-md border border-amber-200/60 bg-gradient-to-br from-amber-50 to-amber-50/50 dark:border-amber-800/40 dark:from-amber-950/20 dark:to-amber-950/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300 shadow-sm">
+                      {assessment.includes("thin") || assessment.includes("light on specifics") || assessment.includes("engagement bait") || assessment.includes("no real content") ? (
+                        <p>This post is light on specifics. Here are a few options, but consider whether a comment adds real value here.</p>
+                      ) : (
+                        <p>{assessment}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI response - generated comments */}
+                <div className="flex justify-start">
+                  <div className="max-w-[85%] w-full space-y-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="h-5 w-5 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <Sparkles className="h-3 w-3 text-primary" />
+                      </div>
+                      <span className="text-xs font-medium text-foreground">Crivox AI</span>
+                      <span className="text-[10px] text-muted-foreground">{comments.length} comments</span>
+                    </div>
+                    {comments.map((comment, idx) => (
+                      <div key={idx} className="rounded-2xl rounded-tl-md bg-gradient-to-br from-card to-muted/30 border border-border p-4 hover:shadow-md transition-all duration-200 shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary/10 text-[10px] font-semibold text-primary">#{idx + 1}</span>
+                          <span className="text-[10px] text-muted-foreground">{comment.length} chars</span>
+                        </div>
+                        {editingIdx === idx ? (
+                          <div className="space-y-2">
+                            <Textarea defaultValue={comment} rows={3} className="text-sm resize-none" id={`edit-${idx}`} />
+                            <div className="flex gap-1.5">
+                              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { const el = document.getElementById(`edit-${idx}`) as HTMLTextAreaElement; if (el) handleEditSave(idx, el.value); }}>Save</Button>
+                              <Button size="sm" variant="ghost" onClick={() => setEditingIdx(null)}>Cancel</Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{comment}</p>
+                        )}
+                        {editingIdx !== idx && (
+                          <div className="flex items-center gap-0.5 mt-3 pt-2.5 border-t border-border flex-wrap">
+                            <ChatAction icon={Copy} label={copiedIdx === idx ? "Copied" : "Copy"} onClick={() => handleCopy(comment, idx)} active={copiedIdx === idx} />
+                            <ChatAction icon={Pencil} label="Edit" onClick={() => setEditingIdx(idx)} />
+                            <ChatAction icon={RefreshCw} label={regeneratingIdx === idx ? "..." : "Redo"} onClick={() => handleRegenerate(idx)} disabled={regeneratingIdx === idx} spinning={regeneratingIdx === idx} />
+                            <ChatAction icon={BookmarkPlus} label="Save" onClick={() => handleSaveAsTemplate(comment)} />
+                            <ChatAction icon={CalendarPlus} label="Queue" onClick={() => handleAddToQueue(comment)} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {/* Copy all + Share */}
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <Button variant="outline" size="sm" className="gap-1.5 rounded-xl text-xs h-10 sm:h-8" onClick={handleCopyAll}><CopyPlus className="h-3.5 w-3.5 sm:h-3 sm:w-3" /> Copy all</Button>
+                      <Button variant="outline" size="sm" className="gap-1.5 rounded-xl text-xs h-10 sm:h-8" onClick={handleShare}><Share2 className="h-3.5 w-3.5 sm:h-3 sm:w-3" /> Share</Button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Bottom input bar - fixed */}
+          <div className="shrink-0 mt-4 rounded-2xl bg-gradient-to-b from-card to-muted/50 border border-border shadow-sm">
+            {/* Tabs */}
+            <div className="flex items-center gap-0.5 px-4 pt-3">
+              {[
+                { id: "url" as const, icon: Link, label: "URL" },
+                { id: "text" as const, icon: Type, label: "Text" },
+                { id: "image" as const, icon: ImageIcon, label: "Image" },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-4 sm:px-3.5 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 rounded-t-lg text-xs font-medium transition-all relative",
+                    tab === t.id
+                      ? "bg-background text-foreground shadow-sm border border-b-0 border-border -mb-px"
+                      : "text-muted-foreground hover:text-foreground bg-transparent border border-transparent"
+                  )}
+                >
+                  <t.icon className={cn("h-3 w-3", tab === t.id && "text-primary")} />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            {/* Input */}
+            <div className="p-4 pt-3 bg-background rounded-b-2xl border-t border-border">
+              {tab === "url" && (
+                <div className="flex gap-2">
+                  <Input placeholder="https://linkedin.com/posts/..." value={url} onChange={(e) => setUrl(e.target.value)} className="h-10 text-sm flex-1 bg-muted/30 border-border focus-visible:bg-background" />
                 </div>
               )}
+              {tab === "text" && (
+                <Textarea placeholder="Paste the post content here..." value={text} onChange={(e) => setText(e.target.value)} rows={3} className="resize-none text-sm bg-muted/30 border-border focus-visible:bg-background" />
+              )}
+              {tab === "image" && (
+                <div className="space-y-2">
+                  <Input type="file" accept="image/*" onChange={handleImageChange} className="text-sm bg-muted/30 border-border" />
+                  {imagePreview && <img src={imagePreview} alt="Preview" className="rounded-lg max-h-32 object-contain border border-border" />}
+                </div>
+              )}
+              {/* Quick controls row */}
+              <div className="flex items-center gap-2 mt-3 flex-wrap">
+                <Select value={tone} onValueChange={setTone}>
+                  <SelectTrigger className="h-10 sm:h-8 text-xs w-auto min-w-[100px] gap-1 bg-muted/30 border-border"><Sparkles className="h-3 w-3 text-primary" /><SelectValue /></SelectTrigger>
+                  <SelectContent>{tones.map((t) => <SelectItem key={t.label} value={t.label}>{t.label}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={length} onValueChange={setLength}>
+                  <SelectTrigger className="h-10 sm:h-8 text-xs w-auto min-w-[80px] bg-muted/30 border-border"><SelectValue /></SelectTrigger>
+                  <SelectContent>{lengths.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={platform} onValueChange={setPlatform}>
+                  <SelectTrigger className="h-10 sm:h-8 text-xs w-auto min-w-[110px] bg-muted/30 border-border"><SelectValue /></SelectTrigger>
+                  <SelectContent>{platforms.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger className="h-10 sm:h-8 text-xs w-auto min-w-[80px] gap-1 bg-muted/30 border-border"><Languages className="h-3 w-3 text-muted-foreground" /><SelectValue /></SelectTrigger>
+                  <SelectContent>{languages.map((l) => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent>
+                </Select>
+                <div className="flex-1" />
+                <Button
+                  className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-10 sm:h-8 text-xs shadow-sm"
+                  onClick={handleGenerate}
+                  disabled={loading}
+                >
+                  <Sparkles className="h-3 w-3" />
+                  {loading ? "Generating..." : "Generate"}
+                </Button>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
-      )}
+
+        {/* Settings panel - slide-out */}
+        {showSettings && (
+          <div className="hidden lg:block w-[300px] shrink-0 space-y-4 overflow-y-auto">
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <p className="text-xs font-semibold text-foreground mb-4 uppercase tracking-wider">Tone</p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {tones.map((t) => (
+                  <button
+                    key={t.label}
+                    onClick={() => setTone(t.label)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2 py-2 rounded-xl text-xs border transition-all",
+                      tone === t.label
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                        : "bg-card text-foreground border-border hover:bg-accent"
+                    )}
+                  >
+                    <t.icon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{t.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
+              <p className="text-xs font-semibold text-foreground uppercase tracking-wider">Options</p>
+              <div>
+                <label className="text-xs font-medium text-foreground mb-1.5 block">Length</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {lengths.map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => setLength(l)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs border transition-all",
+                        length === l
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                          : "bg-card text-foreground border-border hover:bg-accent"
+                      )}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-foreground mb-1.5 block">
+                  Variations: <span className="text-primary">{commentCount}</span>
+                </label>
+                <Slider value={[commentCount]} onValueChange={(v) => { const next = v[0]; if (next !== undefined) setCommentCount(next); }} min={1} max={5} step={1} className="w-full" />
+              </div>
+              <div className="flex flex-wrap gap-x-5 gap-y-2">
+                <div className="flex items-center gap-2">
+                  <Switch id="emoji" checked={includeEmoji} onCheckedChange={setIncludeEmoji} />
+                  <Label htmlFor="emoji" className="flex items-center gap-1 text-xs cursor-pointer"><SmilePlus className="h-3 w-3 text-muted-foreground" /> Emojis</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch id="hashtags" checked={includeHashtags} onCheckedChange={setIncludeHashtags} />
+                  <Label htmlFor="hashtags" className="flex items-center gap-1 text-xs cursor-pointer"><Hash className="h-3 w-3 text-muted-foreground" /> Hashtags</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch id="cta" checked={includeCTA} onCheckedChange={setIncludeCTA} />
+                  <Label htmlFor="cta" className="flex items-center gap-1 text-xs cursor-pointer"><MousePointerClick className="h-3 w-3 text-muted-foreground" /> CTA</Label>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

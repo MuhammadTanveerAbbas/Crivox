@@ -120,7 +120,7 @@ async function callGroqWithFallback(
   }
 
   const detail = errors
-    .map((e, i) => `  ${i + 1}. "${e.model}" — ${e.reason}`)
+    .map((e, i) => `  ${i + 1}. "${e.model}" - ${e.reason}`)
     .join("\n");
 
   throw new Error(
@@ -147,33 +147,33 @@ const toneGuides: Record<string, string> = {
     + "- Use precise terminology and reference relevant trends or data\n"
     + "- Keep sentences well-structured with clear reasoning\n"
     + "- Avoid slang, excessive emojis, or overly casual language\n"
-    + "- Project quiet confidence — state ideas as observations, not commands",
+    + "- Project quiet confidence. State ideas as observations, not commands.",
 
   Casual:
     "Write like you're chatting with a colleague over coffee.\n"
     + "- Use contractions, natural phrasing, and a relaxed rhythm\n"
-    + "- Be approachable and relatable — avoid jargon or buzzwords\n"
+    + "- Be approachable and relatable. Avoid jargon or buzzwords.\n"
     + "- It's okay to be a little informal, but stay on-topic\n"
     + "- Let your personality show without oversharing",
 
   Witty:
     "Be clever, not mean. Punch up, not down.\n"
     + "- Use wordplay, unexpected angles, or dry humor\n"
-    + "- Timing and brevity are everything — a short punchy line beats a long setup\n"
+    + "- Timing and brevity are everything. A short punchy line beats a long setup.\n"
     + "- Read the room: wit works best when it's self-aware or observational\n"
     + "- Never use sarcasm that could be mistaken for hostility",
 
   Supportive:
     "Warm, genuine encouragement.\n"
     + "- Validate the poster's effort or perspective before adding your own take\n"
-    + "- Be specific about what you appreciate — generic praise rings hollow\n"
+    + "- Be specific about what you appreciate. Generic praise rings hollow.\n"
     + "- Offer reassurance or motivation without being syrupy\n"
     + "- Use a kind, empathetic tone that makes the poster glad they shared",
 
   Bold:
     "Take a strong, confident stance.\n"
     + "- State your position clearly and without hedging\n"
-    + "- Challenge assumptions respectfully — bold doesn't mean aggressive\n"
+    + "- Challenge assumptions respectfully. Bold doesn't mean aggressive.\n"
     + "- Back your take with reasoning, not just volume\n"
     + "- Be willing to go against the grain, but stay constructive",
 
@@ -182,7 +182,7 @@ const toneGuides: Record<string, string> = {
     + "- Break down complex ideas into digestible pieces\n"
     + "- Use concrete examples, analogies, or quick step-by-step logic\n"
     + "- Cite frameworks, studies, or mental models naturally\n"
-    + "- Prioritize clarity over showing off — the goal is understanding",
+    + "- Prioritize clarity over showing off. The goal is understanding.",
 
   Insightful:
     "Add a layer the post didn't explicitly state.\n"
@@ -194,7 +194,7 @@ const toneGuides: Record<string, string> = {
   Authoritative:
     "Speak with subject-matter expertise.\n"
     + "- Use domain-specific knowledge and precise terminology\n"
-    + "- Reference experience or credentials implicitly — show, don't tell\n"
+    + "- Reference experience or credentials implicitly. Show, don't tell.\n"
     + "- Be definitive without being arrogant: 'here's what I've learned' over 'trust me'\n"
     + "- Back claims with substance, not bluster",
 };
@@ -203,7 +203,7 @@ const platformGuides: Record<string, string> = {
   LinkedIn:
     "LinkedIn is a professional network. Comments should add career-relevant value.\n"
     + "RULES:\n"
-    + "- Professional but conversational — NOT corporate jargon or buzzwords\n"
+    + "- Professional but conversational. NOT corporate jargon or buzzwords.\n"
     + "- Reference industry trends, personal experience, or data points\n"
     + "- No clickbait, no emoji-overload, max 3 hashtags if used\n"
     + "- Short paragraphs with line breaks for readability\n"
@@ -216,11 +216,11 @@ const platformGuides: Record<string, string> = {
   "Twitter/X":
     "Twitter/X is fast-paced and public. Brevity and personality win.\n"
     + "RULES:\n"
-    + "- Get to the point immediately — no warm-up sentences\n"
+    + "- Get to the point immediately. No warm-up sentences.\n"
     + "- Wit, hot takes, and sharp observations perform best\n"
     + "- Thread-style (numbered points) is fine for longer thoughts\n"
     + "- Reference current events, memes, or trends naturally\n"
-    + "- No corporate-speak — be raw, be real, be human\n"
+    + "- No corporate-speak. Be raw, be real, be human.\n"
     + "- Max 2 hashtags, only if genuinely relevant\n"
     + "- BANNED: 'I think', 'In my opinion', 'Great thread', 'This',\n"
     + "  'Couldn't agree more', 'Facts', 'This is the way'\n"
@@ -231,7 +231,7 @@ const platformGuides: Record<string, string> = {
     + "RULES:\n"
     + "- Short, punchy, emotionally resonant comments\n"
     + "- Match the post's vibe (aesthetic, funny, inspiring, educational)\n"
-    + "- Emojis are expected — use them naturally to convey tone\n"
+    + "- Emojis are expected. Use them naturally to convey tone.\n"
     + "- Questions drive replies and algorithmic engagement\n"
     + "- Be supportive and positive\n"
     + "- No hashtags in comments\n"
@@ -242,7 +242,7 @@ const platformGuides: Record<string, string> = {
   Facebook:
     "Facebook comments are community conversations.\n"
     + "RULES:\n"
-    + "- Conversational and relatable — like talking to a neighbor\n"
+    + "- Conversational and relatable. Like talking to a neighbor.\n"
     + "- Slightly longer than Instagram, more personal than LinkedIn\n"
     + "- Sharing personal anecdotes or local relevance is welcomed\n"
     + "- Emojis are natural and common\n"
@@ -256,7 +256,7 @@ const platformGuides: Record<string, string> = {
     "Reddit is topic-based communities with strong anti-corporate culture.\n"
     + "RULES:\n"
     + "- Match the subreddit's tone (technical, humorous, supportive, critical)\n"
-    + "- Authenticity is everything — Redditors detect AI content instantly\n"
+    + "- Authenticity is everything. Redditors detect AI content instantly.\n"
     + "- Be specific, cite sources if making claims, show expertise\n"
     + "- Self-deprecating humor and light sarcasm are often welcome\n"
     + "- No emojis on most subreddits (they get downvoted)\n"
@@ -269,7 +269,7 @@ const platformGuides: Record<string, string> = {
     "Blog/Website comments are substantive discussions.\n"
     + "RULES:\n"
     + "- Longer-form, well-structured responses with real substance\n"
-    + "- Engage with the article's thesis — agree, disagree, or build upon it\n"
+    + "- Engage with the article's thesis. Agree, disagree, or build upon it.\n"
     + "- Reference specific points from the piece to show you read it\n"
     + "- Academic-but-accessible tone; avoid oversimplification\n"
     + "- Cite related work, studies, or personal experience\n"
@@ -329,6 +329,31 @@ const platformGuides: Record<string, string> = {
     + "- BANNED: 'Great thread', 'Love this', 'This', 'Facts',\n"
     + "  'Couldn't agree more', corporate-speak, overly formal language\n"
     + "- DO: Add a personal take, reference current culture, respond to the poster's specific point",
+
+  "GitHub Discussions":
+    "GitHub Discussions is a forum-like space for open-source communities to coordinate, ask questions, and share knowledge.\n"
+    + "RULES:\n"
+    + "- Friendly and helpful. Think Stack Overflow meets a Discord server.\n"
+    + "- Be specific and technical when discussing code, but approachable for newcomers.\n"
+    + "- Longer, more detailed responses are welcome and expected.\n"
+    + "- No emojis, no hashtags, no marketing language.\n"
+    + "- When answering a question, show code snippets or reference specific files.\n"
+    + "- BANNED: 'Great question', 'Love this', 'Thanks for sharing', any non-technical fluff,\n"
+    + "  'I was just thinking this', 'Have you tried Googling it'\n"
+    + "- DO: Provide concrete examples, link to docs, suggest alternative approaches",
+
+  Medium:
+    "Medium is a long-form publishing platform. Comments are substantive discussions about ideas.\n"
+    + "RULES:\n"
+    + "- Engage with the article's central argument directly.\n"
+    + "- Longer, well-reasoned comments perform well. Show you read the piece.\n"
+    + "- Reference specific passages or data points from the article.\n"
+    + "- Add original thinking: build on the idea, offer a counterpoint, or share related experience.\n"
+    + "- Professional but not academic. Conversational depth.\n"
+    + "- No hashtags, emojis in moderation.\n"
+    + "- BANNED: 'Great article', 'Well written', 'Thanks for this', 'Excellent piece',\n"
+    + "  'This is so important', 'Bookmarking for later', generic praise\n"
+    + "- DO: Quote a specific line and respond to it, add a personal experience that relates, ask a thoughtful question",
 
   Other:
     "Write naturally for the platform the user specified.\n"
@@ -501,120 +526,7 @@ async function fetchUrlContent(
   throw new Error("Could not fetch the URL content after multiple attempts.");
 }
 
-// ── GitHub Repo Fetching ─────────────────────────────────────
-
-async function fetchGitHubContent(
-  repoUrl: string,
-): Promise<{ title: string; description: string; content: string; url: string }> {
-  const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/\s?#]+)/);
-  if (!match) {
-    throw new Error("Could not parse GitHub URL. Use format: github.com/owner/repo");
-  }
-  const owner = match[1];
-  const repo = match[2].replace(/\.git$/, "");
-
-  const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
-
-  const repoResponse = await fetch(apiUrl, {
-    headers: { Accept: "application/vnd.github.v3+json", "User-Agent": "Crivox/1.0" },
-  });
-
-  if (!repoResponse.ok) {
-    if (repoResponse.status === 404) throw new Error("GitHub repository not found. Check the owner and repo name.");
-    if (repoResponse.status === 403) throw new Error("GitHub API rate limit reached. Try again later.");
-    throw new Error(`GitHub API returned status ${repoResponse.status}`);
-  }
-
-  const repoData = await repoResponse.json();
-  const description = repoData.description || "";
-  const language = repoData.language || "";
-  const stars = repoData.stargazers_count ?? 0;
-  const topics = (repoData.topics || []).join(", ");
-
-  // Fetch README
-  let readmeContent = "";
-  try {
-    const readmeResponse = await fetch(`${apiUrl}/readme`, {
-      headers: { Accept: "application/vnd.github.v3.raw", "User-Agent": "Crivox/1.0" },
-    });
-    if (readmeResponse.ok) {
-      readmeContent = await readmeResponse.text();
-      if (readmeContent.length > 4000) {
-        readmeContent = readmeContent.slice(0, 4000) + "\n\n[... README truncated]";
-      }
-    }
-  } catch {
-    // README fetch is non-critical
-  }
-
-  const title = `${owner}/${repo}`;
-  const content = (
-    `Repository: ${owner}/${repo}\n`
-    + (description ? `Description: ${description}\n` : "")
-    + (language ? `Language: ${language}\n` : "")
-    + `Stars: ${stars}\n`
-    + (topics ? `Topics: ${topics}\n` : "")
-    + (readmeContent ? `\n--- README ---\n${readmeContent}` : "")
-  );
-
-  return { title, description, content, url: repoUrl };
-}
-
-// ── npm Package Fetching ──────────────────────────────────────
-
-async function fetchNpmContent(
-  packageName: string,
-): Promise<{ title: string; description: string; content: string; url: string }> {
-  const name = packageName.replace(/^https?:\/\/www\.npmjs\.com\/package\//, "").replace(/\/$/, "").trim();
-  if (!name) throw new Error("Could not parse npm package name.");
-
-  const apiUrl = `https://registry.npmjs.org/${encodeURIComponent(name)}`;
-
-  const response = await fetch(apiUrl, {
-    headers: { Accept: "application/json" },
-  });
-
-  if (!response.ok) {
-    if (response.status === 404) throw new Error(`npm package "${name}" not found.`);
-    throw new Error(`npm registry returned status ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  const latestVersion = data["dist-tags"]?.latest || "unknown";
-  const versionData = data.versions?.[latestVersion] || {};
-  const description = data.description || versionData.description || "";
-  const keywords = (data.keywords || []).join(", ");
-  const license = data.license || versionData.license || "unknown";
-
-  // Fetch README
-  let readmeContent = "";
-  try {
-    const readmeResponse = await fetch(`${apiUrl}/${latestVersion}/readme`, {
-      headers: { Accept: "text/html" },
-    });
-    if (readmeResponse.ok) {
-      readmeContent = await readmeResponse.text();
-      if (readmeContent.length > 4000) {
-        readmeContent = readmeContent.slice(0, 4000) + "\n\n[... README truncated]";
-      }
-    }
-  } catch {
-    // README fetch is non-critical
-  }
-
-  const title = name;
-  const content = (
-    `Package: ${name}\n`
-    + `Version: ${latestVersion}\n`
-    + (description ? `Description: ${description}\n` : "")
-    + (keywords ? `Keywords: ${keywords}\n` : "")
-    + `License: ${license}\n`
-    + (readmeContent ? `\n--- README ---\n${readmeContent}` : "")
-  );
-
-  return { title, description, content, url: `https://www.npmjs.com/package/${name}` };
-}
+// ── Content Extraction ─────────────────────────────────
 
 function extractHtmlContent(
   html: string,
@@ -747,7 +659,7 @@ async function extractImageText(
               type: "text",
               text:
                 "Extract all the text content from this screenshot of a social media post. "
-                + "Return only the post content exactly as written — nothing else, no commentary.",
+                + "Return only the post content exactly as written. Nothing else, no commentary.",
             },
             { type: "image_url", image_url: { url: imageBase64 } },
           ],
@@ -819,18 +731,18 @@ function buildRules(options: {
     "QUALITY RULES:",
     "  - Each variation must be meaningfully different in structure, angle, and approach",
     "  - Reference something specific from the post content to prove you read it",
-    "  - Use concrete, specific language — avoid vague praise",
-    "  - Never announce the tone ('Here's my professional take...') — just write in that tone",
-    "  - No clichés, platitudes, or generic encouragement",
-    "  - Get to the point — no filler introductions",
+    "  - Use concrete, specific language. Avoid vague praise.",
+    "  - Never announce the tone ('Here's my professional take...'). Just write in that tone.",
+    "  - No cliches, platitudes, or generic encouragement",
+    "  - Get to the point. No filler introductions.",
     "",
     "HUMANIZATION RULES (these matter more than any other rule):",
-    "  - Vary sentence length aggressively. Mix 3-8 word sentences with 20+ word sentences in the same comment. AI output defaults to a narrow medium band, avoid that.",
+    "  - Vary sentence length aggressively. Mix 3-8 word sentences with 20+ word sentences in the same comment. AI output defaults to a narrow medium band. Avoid that.",
     "  - Never use three-item lists (triads like 'fast, reliable, and scalable' are an AI tell). One or two specifics beat a rhythmic three.",
-    "  - Never use the 'it's not X, it's Y' construction or similar smooth-transition scaffolding.",
+    "  - Never use 'it's not X, it's Y' or 'not just about... it is about...' constructions.",
     "  - No hedging. If the comment would naturally take a position, take it clearly.",
     "  - Never start consecutive sentences with the same word or structure.",
-    "  - Zero em dashes (---) or hyphens used as sentence separators. Use periods, commas, or colons instead.",
+    "  - Zero em dashes or hyphens used as sentence separators. Use periods, commas, or colons instead.",
     "",
     "ABSOLUTELY BANNED PHRASES (never use these):",
     `  ${bannedPhrases.join(", ")}`,
@@ -838,7 +750,7 @@ function buildRules(options: {
   ];
 
   if (options.includeEmoji) {
-    rules.push("EMOJIS: Use emojis naturally to enhance meaning — don't decorate emptiness.");
+    rules.push("EMOJIS: Use emojis naturally to enhance meaning. Don't decorate emptiness.");
   } else {
     rules.push("EMOJIS: Do NOT use any emojis under any circumstances.");
   }
@@ -850,12 +762,12 @@ function buildRules(options: {
   }
 
   if (options.includeCta) {
-    rules.push("CTA: End each comment with a subtle call-to-action — a question, an invitation to discuss, or a genuine curiosity prompt.");
+    rules.push("CTA: End each comment with a subtle call-to-action. A question, an invitation to discuss, or a genuine curiosity prompt.");
   }
 
   if (options.single && options.variationNumber) {
     rules.push(
-      `REGENERATION: This replaces variation #${options.variationNumber}. Make it completely different — new angle, new structure, new opening.`,
+      `REGENERATION: This replaces variation #${options.variationNumber}. Make it completely different. New angle, new structure, new opening.`,
     );
   }
 
@@ -875,7 +787,7 @@ function buildSystemPrompt(options: {
   const commenterBlock = buildCommenterBlock(options.profile || {}, options.voiceSamples || []);
   const commenterSection = commenterBlock ? `\n${commenterBlock}\n` : "";
 
-  return `You are an expert social media comment writer. You deeply understand every platform's culture, norms, and unwritten rules. You write comments that real people would write — specific, authentic, and valuable.${commenterSection}
+  return `You are an expert social media comment writer. You deeply understand every platform's culture, norms, and unwritten rules. You write comments that real people would write. Specific, authentic, and valuable.${commenterSection}
 
 Generate exactly ${options.commentCount} distinct comment variation${options.commentCount > 1 ? "s" : ""} for a ${options.platform} post.
 
@@ -890,7 +802,7 @@ Be aware of current platform dynamics: on LinkedIn, meaningful comments (10+ wor
 
 Now read the post content below and write comments that:
 1. Show you understand the specific post (reference real details from it)
-2. Add new thinking — don't just react, contribute something original
+2. Add new thinking. Don't just react, contribute something original.
 3. Feel like they were written by a real human in 2026
 4. Would earn upvotes/likes/replies from that platform's community
 5. Make the original poster glad they shared
@@ -1076,24 +988,10 @@ serve(async (req) => {
       postContent = await extractImageText(image_base64, GROQ_API_KEY, GROQ_BASE_URL, groqController.signal);
     }
 
-    // ── GitHub Repo Mode: Fetch repo info and README ──
-    if (input_type === "github") {
-      if (!postContent) throw new Error("Please paste a GitHub repository URL.");
-      const fetched = await fetchGitHubContent(postContent);
-      postContent = formatUrlContent(fetched, platform || "GitHub");
-    }
-
-    // ── npm Package Mode: Fetch package info and README ──
-    if (input_type === "npm") {
-      if (!postContent) throw new Error("Please paste an npm package name or URL.");
-      const fetched = await fetchNpmContent(postContent);
-      postContent = formatUrlContent(fetched, platform || "GitHub");
-    }
-
     if (!postContent) {
       clearTimeout(groqTimeout);
       return new Response(
-        JSON.stringify({ error: "No content to generate comments for. Please provide text, a URL, an image, a GitHub repo, or an npm package." }),
+        JSON.stringify({ error: "No content to generate comments for. Please provide text, a URL, or an image." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }

@@ -22,7 +22,7 @@ const plans = [
     features: [
       "Up to 3 comment variations",
       "8 tone styles",
-      "10 platforms supported",
+      "11 platforms supported",
       "English only",
       "Comment history",
       "Basic analytics",
@@ -35,6 +35,7 @@ const plans = [
     period: "per month",
     description: "For power users who comment at scale",
     featured: true,
+    comingSoon: true,
     icon: Sparkles,
     color: "text-violet-500",
     features: [
@@ -185,6 +186,11 @@ export default function PricingPage() {
                       <Icon className={cn("h-4 w-4", plan.color)} />
                     </div>
                     <h3 className="font-display text-xl font-medium text-foreground">{plan.name}</h3>
+                    {(plan as any).comingSoon && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full shrink-0 ml-auto">
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
 
                   {/* Price */}
@@ -265,7 +271,7 @@ export default function PricingPage() {
           {[
             { feature: "Comment variations", free: "3", pro: "5" },
             { feature: "Tone styles", free: "8", pro: "8" },
-            { feature: "Platforms", free: "10", pro: "10" },
+            { feature: "Platforms", free: "11", pro: "11" },
             { feature: "Languages", free: "English only", pro: "9 languages" },
             { feature: "Bulk generation", free: "", pro: "Up to 5 posts" },
             { feature: "Templates & queue", free: "", pro: "✓" },

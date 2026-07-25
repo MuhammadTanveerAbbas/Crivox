@@ -100,7 +100,7 @@ const HistoryPage = () => {
       input_type: item.input_type,
       content: item.input_content || "",
     });
-    navigate(`/dashboard?${params.toString()}`);
+    navigate(`/dashboard/generate?${params.toString()}`);
     toast.success("Settings loaded  ready to generate!");
   };
 

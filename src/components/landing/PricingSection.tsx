@@ -17,7 +17,7 @@ const plans = [
     features: [
       "Up to 3 comment variations",
       "8 tone styles",
-      "10 platforms supported",
+      "11 platforms supported",
       "English only",
       "Comment history",
     ],
@@ -29,6 +29,7 @@ const plans = [
     period: "per month",
     description: "For people who comment regularly",
     featured: true,
+    comingSoon: true,
     features: [
       "Up to 5 comment variations",
       "8 tone styles",
@@ -96,7 +97,14 @@ export const PricingSection = () => {
                     : "border border-border shadow-sm"
                 )}
               >
-                <h3 className="font-display text-2xl font-medium text-foreground">{plan.name}</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-display text-2xl font-medium text-foreground">{plan.name}</h3>
+                  {plan.comingSoon && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 rounded-full shrink-0">
+                      Coming Soon
+                    </span>
+                  )}
+                </div>
                 <div className="mt-3 mb-1 flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-foreground">{plan.price}</span>
                   <span className="text-muted-foreground text-sm">/{plan.period}</span>

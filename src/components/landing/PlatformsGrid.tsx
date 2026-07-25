@@ -1,4 +1,4 @@
-import { Linkedin, Twitter, MessageSquare, ImageIcon, Users, Globe, Github, Hash, ExternalLink, MessageCircle } from "lucide-react";
+import { Linkedin, Twitter, MessageSquare, ImageIcon, Users, Globe, Hash, ExternalLink, MessageCircle, PenLine } from "lucide-react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 
 const platforms = [
@@ -10,15 +10,16 @@ const platforms = [
   { name: "Blog/Website", icon: Globe, desc: "Content comments" },
   { name: "Hacker News", icon: ExternalLink, desc: "Tech discussions" },
   { name: "Indie Hackers", icon: MessageCircle, desc: "Maker community" },
-  { name: "GitHub", icon: Github, desc: "Code collaboration" },
+  { name: "GitHub Discussions", icon: MessageSquare, desc: "Code collaboration" },
   { name: "Threads", icon: Hash, desc: "Conversational posts" },
+  { name: "Medium", icon: PenLine, desc: "Editorial content" },
 ];
 
 export const PlatformsGrid = () => (
   <section id="features" className="px-4 sm:px-6 py-16 sm:py-24 max-w-6xl mx-auto">
     <ScrollReveal className="text-center mb-10 sm:mb-14">
       <h2 className="font-display text-3xl sm:text-4xl font-medium tracking-tight text-foreground mb-4">
-        Works on all 10 platforms you engage on
+        Works on all 11 platforms you engage on
       </h2>
       <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
         Comments tailored to each platform's culture, norms, and best practices.

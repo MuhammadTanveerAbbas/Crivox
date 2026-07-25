@@ -1,17 +1,13 @@
 import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { TrustStrip } from "@/components/landing/TrustStrip";
+import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorks } from "@/components/landing/HowItWorks";
-import { PlatformsGrid } from "@/components/landing/PlatformsGrid";
 import { ToneExamples } from "@/components/landing/ToneExamples";
-import { StatsBar } from "@/components/landing/StatsBar";
-import { EngagementMetrics } from "@/components/landing/EngagementMetrics";
-import { Testimonials } from "@/components/landing/Testimonials";
-import { PlatformInsights } from "@/components/landing/PlatformInsights";
 import { ComparisonTable } from "@/components/landing/ComparisonTable";
-import { CTASection } from "@/components/landing/CTASection";
-import { FAQSection } from "@/components/landing/FAQSection";
+import { HonestySection } from "@/components/landing/HonestySection";
 import { PricingSection } from "@/components/landing/PricingSection";
+import { FAQSection } from "@/components/landing/FAQSection";
+import { CTASection } from "@/components/landing/CTASection";
 import { Footer } from "@/components/landing/Footer";
 
 const Landing = () => {
@@ -19,15 +15,11 @@ const Landing = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
-      <TrustStrip />
+      <FeaturesSection />
       <HowItWorks />
-      <PlatformsGrid />
       <ToneExamples />
-      <StatsBar />
-      <EngagementMetrics />
-      <Testimonials />
-      <PlatformInsights />
       <ComparisonTable />
+      <HonestySection />
       <PricingSection />
       <FAQSection />
       <CTASection />

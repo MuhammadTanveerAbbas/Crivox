@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: "Which platforms are supported?",
-    a: "LinkedIn, Twitter/X, Instagram, Facebook, Reddit, Blog/Website, Hacker News, Indie Hackers, GitHub, and Threads. The AI is prompted to match each platform's culture.",
+    a: "LinkedIn, Twitter/X, Instagram, Facebook, Reddit, Blog/Website, Hacker News, Indie Hackers, GitHub Discussions, Threads, and Medium. The AI is prompted to match each platform's culture.",
   },
   {
     q: "How many tone styles are there?",

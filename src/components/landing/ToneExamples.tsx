@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Briefcase, Coffee, Smile, Heart } from "lucide-react";
+import { Briefcase, Coffee, Smile, Heart, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollReveal } from "./ScrollReveal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +25,11 @@ const examples = [
     Icon: Heart,
     text: "What an inspiring journey! Thanks for sharing, this will help so many people just starting out.",
   },
+  {
+    tone: "Thoughtful",
+    Icon: MessageSquare,
+    text: "Great perspective. I think the key insight here is how this shifts the conversation toward long-term value.",
+  },
 ];
 
 export const ToneExamples = () => {
@@ -34,8 +39,12 @@ export const ToneExamples = () => {
 
   return (
     <section className="px-4 sm:px-6 py-16 sm:py-24 bg-muted/30">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <ScrollReveal className="text-center mb-10 sm:mb-12">
+          <div className="inline-flex items-center gap-2 bg-accent text-accent-foreground text-xs font-medium px-3 py-1.5 rounded-full mb-4">
+            <MessageSquare className="h-3 w-3" />
+            See it in action
+          </div>
           <h2 className="font-display text-3xl sm:text-4xl font-medium tracking-tight text-foreground mb-4">
             Same post, different voices
           </h2>
@@ -51,13 +60,13 @@ export const ToneExamples = () => {
                 key={e.tone}
                 onClick={() => setActive(i)}
                 className={cn(
-                  "flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150",
+                  "flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 min-h-[38px]",
                   active === i
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "bg-card border border-border text-foreground hover:bg-accent"
                 )}
               >
-                <e.Icon className="h-3.5 w-3.5" />
+                <e.Icon className="h-3.5 w-3.5 shrink-0" />
                 {e.tone}
               </button>
             ))}
@@ -73,14 +82,14 @@ export const ToneExamples = () => {
               className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm"
             >
               <div className="flex items-center gap-2 mb-4">
-                {(() => { const Icon = example.Icon; return <Icon className="h-4 w-4 text-blue-500" />; })()}
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  {(() => { const Icon = example.Icon; return <Icon className="h-4 w-4 text-primary" />; })()}
+                </div>
                 <span className="text-xs font-semibold text-primary uppercase tracking-wider">
                   {example.tone}
                 </span>
               </div>
-              <p className="text-foreground leading-relaxed text-sm sm:text-base">
-                "{example.text}"
-              </p>
+              <p className="text-foreground leading-relaxed text-sm sm:text-base">&ldquo;{example.text}&rdquo;</p>
             </motion.div>
           </AnimatePresence>
         </ScrollReveal>

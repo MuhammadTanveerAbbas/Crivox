@@ -13,8 +13,8 @@ import { Loader2 } from "lucide-react";
 const Landing = lazy(() => import("./pages/Landing"));
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const GeneratorPage = lazy(() => import("./pages/GeneratorPage"));
 const HistoryPage = lazy(() => import("./pages/HistoryPage"));
-const StatsPage = lazy(() => import("./pages/StatsPage"));
 const TemplatesPage = lazy(() => import("./pages/TemplatesPage"));
 const BulkGeneratePage = lazy(() => import("./pages/BulkGeneratePage"));
 const QueuePage = lazy(() => import("./pages/QueuePage"));
@@ -55,8 +55,8 @@ const App = () => (
                   <Route path="/pricing" element={<PricingPage />} />
 
                   <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/dashboard/generate" element={<ProtectedRoute><GeneratorPage /></ProtectedRoute>} />
                   <Route path="/dashboard/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
-                  <Route path="/dashboard/stats" element={<ProtectedRoute><StatsPage /></ProtectedRoute>} />
                   <Route path="/dashboard/templates" element={<ProtectedRoute><TemplatesPage /></ProtectedRoute>} />
                   <Route path="/dashboard/bulk" element={<ProtectedRoute><BulkGeneratePage /></ProtectedRoute>} />
                   <Route path="/dashboard/queue" element={<ProtectedRoute><QueuePage /></ProtectedRoute>} />

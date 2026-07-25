@@ -37,8 +37,8 @@ Crivox solves the blank reply box problem. Paste any social media post and get t
 - **Shareable Links** - Public comment set URLs with no login required
 - **Dark/Light Mode** - Persistent theme preference
 - **Voice Profile** - Store up to 3 writing samples so AI matches your personal style
-- **GitHub/npm Import** - Paste a repo or package name to auto-fetch README as context
-- **10 Platforms** - LinkedIn, Twitter/X, Instagram, Facebook, Reddit, Blogs, Hacker News, Indie Hackers, GitHub, Threads
+- **Image/URL Input** - Paste a URL or upload a screenshot; Crivox fetches or reads the content
+- **11 Platforms** - LinkedIn, Twitter/X, Instagram, Facebook, Reddit, Blog/Website, Hacker News, Indie Hackers, GitHub Discussions, Threads, Medium
 - **Pro Plan ($9/mo)** - Up to 5 variations, 9 languages, priority rate limits, multi-language support
 
 ---
