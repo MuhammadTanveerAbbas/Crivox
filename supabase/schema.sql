@@ -214,7 +214,7 @@ CREATE TRIGGER set_subscriptions_updated_at
 -- ── Functions & Triggers ─────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION public.set_updated_at()
-RETURNS trigger LANGUAGE plpgsql AS $$
+RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
@@ -232,6 +232,8 @@ CREATE TRIGGER set_comment_queue_updated_at
   BEFORE UPDATE ON public.comment_queue
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM anon, authenticated;
+
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
@@ -245,6 +247,8 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+REVOKE EXECUTE ON FUNCTION public.delete_user_account() FROM anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.delete_user_account()
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
