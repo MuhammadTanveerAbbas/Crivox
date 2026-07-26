@@ -29,9 +29,14 @@ async function fetchWithRetry(url: string, options: RequestInit, retries: number
       const response = await fetch(url, options);
       if (response.ok || attempt === retries) return response;
       if (response.status >= 400 && response.status < 500) return response;
-    } catch {
-      if (attempt === retries) throw new Error("Network error. Please check your connection.");
-      await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw error;
+      }
+      if (attempt === retries) {
+        throw new Error("Network error. Please check your connection and try again.");
+      }
+      await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
     }
   }
   throw new Error("Failed to reach the server. Please try again.");
@@ -96,6 +101,9 @@ export async function generateComments(params: GenerateParams): Promise<Generate
       }
       if (response.status === 402) {
         throw new Error(errorMsg || "Usage limit reached. Please add credits to continue.");
+      }
+      if (response.status === 500) {
+        throw new Error(errorMsg || "The AI service encountered an error. Please try again.");
       }
       throw new Error(errorMsg || "Failed to generate comments. Please try again.");
     }
