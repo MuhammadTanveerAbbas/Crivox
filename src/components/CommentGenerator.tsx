@@ -453,9 +453,9 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
         {/* Main chat area */}
         <div className={cn("flex-1 flex flex-col min-w-0", showSettings && "hidden")}>
           {/* Chat thread - scrollable */}
-          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+          <div className={cn("flex-1 space-y-4 pr-1", messages.length > 0 || loading ? "overflow-y-auto" : "overflow-hidden")}>
             {messages.length === 0 && !loading && (
-              <div className="flex flex-col items-center justify-center h-full min-h-[250px] sm:min-h-[400px] text-center">
+              <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="h-14 w-14 rounded-2xl bg-accent flex items-center justify-center mb-4">
                   <Sparkles className="h-6 w-6 text-muted-foreground" />
                 </div>
@@ -477,7 +477,7 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
                         </div>
                         <span className="text-xs font-medium text-foreground">You</span>
                         <span className="text-[10px] text-muted-foreground">
-                          {tab === "image" ? "Image" : platform}
+                          {msg.settings?.platform || platform}
                         </span>
                       </div>
                       <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap line-clamp-3">

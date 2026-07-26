@@ -27,8 +27,8 @@ async function fetchWithRetry(url: string, options: RequestInit, retries: number
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const response = await fetch(url, options);
-      if (response.ok || attempt === retries) return response;
-      if (response.status >= 400 && response.status < 500) return response;
+      if (response.ok) return response;
+      return response;
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         throw error;

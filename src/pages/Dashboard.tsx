@@ -1,9 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   MessageSquare, BarChart3, TrendingUp, Zap, Copy, Check,
@@ -36,28 +36,36 @@ const tooltipStyle = {
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchHistory = useCallback(async () => {
     if (!user) return;
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("comment_history")
-        .select("id, input_type, platform, tone, created_at, generated_comments")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1000);
-      setItems((data || []).map((d: any) => ({
-        id: d.id, input_type: d.input_type, platform: d.platform,
-        tone: d.tone, created_at: d.created_at,
-        generated_comments: d.generated_comments || [],
-      })));
-      setLoading(false);
-    };
-    fetch();
+    const { data } = await supabase
+      .from("comment_history")
+      .select("id, input_type, platform, tone, created_at, generated_comments")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1000);
+    setItems((data || []).map((d: Record<string, unknown>) => ({
+      id: d.id, input_type: d.input_type, platform: d.platform,
+      tone: d.tone, created_at: d.created_at,
+      generated_comments: d.generated_comments || [],
+    })));
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory, location.key]);
+
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") fetchHistory(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [fetchHistory]);
 
   const totalAll = items.length;
   const thisMonth = useMemo(() => {

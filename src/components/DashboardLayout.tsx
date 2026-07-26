@@ -120,7 +120,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
           </div>
 
           {/* Nav */}
-          <nav className={cn("flex-1 py-3 space-y-0.5", collapsed && !isMobile ? "px-1.5" : isMobile ? "px-3" : "px-3")}>
+          <nav className={cn("flex-1 py-3 space-y-1", collapsed && !isMobile ? "px-1.5" : isMobile ? "px-3" : "px-3")}>
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               const btn = (
@@ -130,7 +130,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                   onClick={() => { navigate(item.path); setMobileOpen(false); }}
                   className={cn(
                     "flex items-center w-full rounded-xl text-sm transition-all duration-150",
-                    collapsed && !isMobile ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-2.5 min-h-[44px]",
+                    collapsed && !isMobile ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-3 min-h-[44px]",
                     isActive
                       ? "bg-primary/10 text-primary font-medium shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
@@ -154,12 +154,12 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
           </nav>
 
           {/* Bottom section */}
-          <div className={cn("pb-4 space-y-1", collapsed && !isMobile ? "px-1.5" : isMobile ? "px-3" : "px-3")}>
+          <div className={cn("pb-4 space-y-1.5", collapsed && !isMobile ? "px-1.5" : isMobile ? "px-3" : "px-3")}>
             <button
               onClick={async () => { await supabase.auth.signOut(); navigate("/", { replace: true }); }}
               className={cn(
                 "flex items-center w-full rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-150",
-                collapsed && !isMobile ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-2.5 min-h-[44px]"
+                collapsed && !isMobile ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-3 min-h-[44px]"
               )}
             >
               <LogOut className="h-4 w-4 shrink-0" />
@@ -170,7 +170,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 onClick={() => setCollapsed(!collapsed)}
                 className={cn(
                   "flex items-center w-full rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-150",
-                  collapsed ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-2.5"
+                  collapsed ? "justify-center h-10 w-10 mx-auto" : "gap-3 px-3 py-3"
                 )}
               >
                 {collapsed ? <PanelLeft className="h-4 w-4" /> : <><PanelLeftClose className="h-4 w-4" /><span>Collapse sidebar</span></>}
