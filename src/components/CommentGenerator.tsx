@@ -85,6 +85,18 @@ const TypingIndicator = () => (
   </div>
 );
 
+const PERSIST_KEY = "crivox_control_settings";
+
+function loadPersisted<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(`${PERSIST_KEY}_${key}`);
+    return raw !== null ? (JSON.parse(raw) as T) : fallback;
+  } catch { return fallback; }
+}
+function persist<T>(key: string, value: T) {
+  try { localStorage.setItem(`${PERSIST_KEY}_${key}`, JSON.stringify(value)); } catch { void 0; }
+}
+
 let messageIdCounter = 1;
 
 const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
@@ -95,14 +107,14 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const [tone, setTone] = useState<string>(prefill?.tone ?? "Professional");
-  const [length, setLength] = useState<string>(prefill?.length ?? "Medium");
-  const [platform, setPlatform] = useState<string>(prefill?.platform ?? "LinkedIn");
-  const [language, setLanguage] = useState<string>("en");
-  const [includeEmoji, setIncludeEmoji] = useState(false);
-  const [includeHashtags, setIncludeHashtags] = useState(false);
-  const [includeCTA, setIncludeCTA] = useState(false);
-  const [commentCount, setCommentCount] = useState(3);
+  const [tone, setTone] = useState<string>(prefill?.tone ?? loadPersisted("tone", "Professional"));
+  const [length, setLength] = useState<string>(prefill?.length ?? loadPersisted("length", "Medium"));
+  const [platform, setPlatform] = useState<string>(prefill?.platform ?? loadPersisted("platform", "LinkedIn"));
+  const [language, setLanguage] = useState<string>(loadPersisted("language", "en"));
+  const [includeEmoji, setIncludeEmoji] = useState(loadPersisted("includeEmoji", false));
+  const [includeHashtags, setIncludeHashtags] = useState(loadPersisted("includeHashtags", false));
+  const [includeCTA, setIncludeCTA] = useState(loadPersisted("includeCTA", false));
+  const [commentCount, setCommentCount] = useState(loadPersisted("commentCount", 3));
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -121,6 +133,17 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading, scrollToBottom]);
+
+  useEffect(() => {
+    persist("tone", tone);
+    persist("length", length);
+    persist("platform", platform);
+    persist("language", language);
+    persist("includeEmoji", includeEmoji);
+    persist("includeHashtags", includeHashtags);
+    persist("includeCTA", includeCTA);
+    persist("commentCount", commentCount);
+  }, [tone, length, platform, language, includeEmoji, includeHashtags, includeCTA, commentCount]);
 
   useEffect(() => {
     if (!user || prefill) return;
@@ -172,11 +195,12 @@ const CommentGenerator = ({ prefill }: { prefill?: PrefillProps }) => {
       };
       setMessages((prev) => [...prev, assistantMsg]);
 
-      await supabase.from("comment_history").insert({
+      const historyData = {
         user_id: user!.id, input_type: tab,
         input_content: tab === "image" ? "[Image]" : resolvedContent.slice(0, 500),
         platform, tone, length, generated_comments: result.comments,
-      }).catch(() => {});
+      };
+      supabase.from("comment_history").insert(historyData).then(() => {});
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to generate comments";
       const errorMsg: ChatMessage = {
