@@ -1,5 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
+const SUPABASE_CHECK_TIMEOUT_MS = 10_000;
+
 export default async function handler(req: Request) {
   const authHeader = req.headers.get("authorization");
   const expectedSecret = process.env.CRON_SECRET;
@@ -30,7 +32,15 @@ export default async function handler(req: Request) {
 
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  const { error } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(
+      () => reject(new Error("Database connection timed out")),
+      SUPABASE_CHECK_TIMEOUT_MS,
+    )
+  );
+
+  const query = supabase.from("profiles").select("id").limit(1).maybeSingle();
+  const { error } = await Promise.race([query, timeout]);
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {

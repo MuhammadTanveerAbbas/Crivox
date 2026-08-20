@@ -1,13 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  callGroqWithFallback,
+  GroqRateLimitError,
+  sleepWithAbort,
+} from "../../../src/lib/groqReliability.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // ── Model Configuration ────────────────────────────────────────────────────
 // All models are configurable via env vars so you NEVER need to change code.
@@ -17,8 +20,14 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 //   GROQ_VISION_MODEL       = primary vision/OCR model (default: meta-llama/llama-4-scout-17b-16e-instruct)
 //   GROQ_VISION_FALLBACKS   = comma-separated fallbacks for vision (default below)
 //
-// If a model returns 404/model_not_found, the next fallback is tried automatically.
-// If ALL models fail, a clear error lists which models were tried.
+// At runtime the edge function discovers the currently available Groq model
+// list (cached server-side for 30 minutes) and prefers the configured models in
+// order. If a model returns 404/model_not_found, the list is refreshed and the
+// next compatible model is tried automatically. If ALL models fail, a clear
+// error lists which models were tried.
+//
+// Reliability helpers (retries, backoff, fallback) live in
+// src/lib/groqReliability.ts and are shared with the unit tests.
 
 interface ModelConfig {
   primary: string;
@@ -41,92 +50,6 @@ function getModelConfig(
 
 function getAllModels(config: ModelConfig): string[] {
   return [config.primary, ...config.fallbacks];
-}
-
-function tryParseJson(text: string): Record<string, unknown> | null {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
-}
-
-function isModelNotFound(bodyText: string, status: number): boolean {
-  if (status === 404) return true;
-  const parsed = tryParseJson(bodyText);
-  if (!parsed) return false;
-  const err = parsed.error as Record<string, unknown> | undefined;
-  if (!err) return false;
-  return (
-    err.code === "model_not_found" ||
-    String(err.message ?? "").includes("model_not_found") ||
-    String(err.code ?? "").includes("not_found")
-  );
-}
-
-async function callGroqWithFallback(
-  baseUrl: string,
-  apiKey: string,
-  config: ModelConfig,
-  bodyFn: (model: string) => Record<string, unknown>,
-  signal: AbortSignal,
-  label: string,
-): Promise<{ data: Record<string, unknown>; model: string }> {
-  const models = getAllModels(config);
-  const errors: { model: string; reason: string }[] = [];
-
-  for (const model of models) {
-    try {
-      const response = await fetch(baseUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bodyFn(model)),
-        signal,
-      });
-
-      if (response.ok) {
-        const data = await response.json() as Record<string, unknown>;
-        return { data, model };
-      }
-
-      const bodyText = await response.text().catch(() => "");
-
-      if (response.status === 429) {
-        const err = new Error("AI service is busy. Please wait a moment and try again.");
-        (err as any).statusCode = 429;
-        throw err;
-      }
-
-      if (isModelNotFound(bodyText, response.status)) {
-        errors.push({ model, reason: "model not available (removed/deprecated)" });
-        continue;
-      }
-
-      throw new Error(
-        `${label} failed (${response.status}): ${bodyText.slice(0, 300)}`,
-      );
-    } catch (err: any) {
-      if (err instanceof DOMException && err.name === "AbortError") throw err;
-      if (err.statusCode === 429) throw err;
-      if (err instanceof TypeError && String(err.message ?? "").includes("fetch")) {
-        errors.push({ model, reason: "network error" });
-        continue;
-      }
-      throw err;
-    }
-  }
-
-  const detail = errors
-    .map((e, i) => `  ${i + 1}. "${e.model}" - ${e.reason}`)
-    .join("\n");
-
-  throw new Error(
-    `All AI models failed for ${label}.\nTried:\n${detail}\n\n`
-    + "Please try again later or contact support if this persists.",
-  );
 }
 
 const languageNames: Record<string, string> = {
@@ -503,7 +426,7 @@ async function fetchUrlContent(
 
       if (error instanceof TypeError && (error.message.includes("fetch") || error.message.includes("network"))) {
         if (attempt < 2) {
-          await sleep(1500 * (attempt + 1));
+          await sleepWithAbort(1500 * (attempt + 1));
           continue;
         }
         throw new Error(
@@ -512,7 +435,7 @@ async function fetchUrlContent(
       }
       if (error instanceof DOMException && error.name === "AbortError") {
         if (attempt < 2) {
-          await sleep(1000 * (attempt + 1));
+          await sleepWithAbort(1000 * (attempt + 1));
           continue;
         }
         throw new Error(
@@ -645,11 +568,14 @@ async function extractImageText(
     ["meta-llama/llama-4-scout-17b-16e-instruct", "qwen/qwen3-32b"],
   );
 
-  const { data } = await callGroqWithFallback(
-    groqBaseUrl,
-    groqApiKey,
-    visionConfig,
-    (model) => ({
+  const { data } = await callGroqWithFallback({
+    chatCompletionsUrl: groqBaseUrl,
+    apiKey: groqApiKey,
+    preferredModels: getAllModels(visionConfig),
+    kind: "vision",
+    label: "Image OCR",
+    signal,
+    buildBody: (model) => ({
       model,
       messages: [
         {
@@ -666,9 +592,7 @@ async function extractImageText(
         },
       ],
     }),
-    signal,
-    "Image OCR",
-  );
+  });
 
   const text = (data.choices as any)?.[0]?.message?.content || "";
   if (!text) throw new Error("Could not extract text from the image. Try a clearer screenshot.");
@@ -939,7 +863,14 @@ serve(async (req) => {
       );
     }
 
-    const rateLimit = await checkRateLimit(supabase, user.id);
+    let rateLimit: { allowed: boolean; retryAfter?: number };
+    try {
+      rateLimit = await checkRateLimit(supabase, user.id);
+    } catch {
+      // A rate-limit store failure must not block generation. Fail open and log.
+      console.error("Rate limit check failed; allowing request.");
+      rateLimit = { allowed: true };
+    }
     if (!rateLimit.allowed) {
       return new Response(
         JSON.stringify({
@@ -1051,7 +982,8 @@ serve(async (req) => {
     });
 
     // ── Call Groq API with automatic model fallback ──
-    // If the primary model returns 404/model_not_found, next fallback is tried automatically.
+    // Discovers available models (cached server-side), prefers the configured
+    // models, and falls back to another compatible model when needed.
     const textConfig = getModelConfig(
       "GROQ_MODEL",
       "GROQ_FALLBACK_MODELS",
@@ -1059,20 +991,21 @@ serve(async (req) => {
       ["llama-3.1-8b-instant", "openai/gpt-oss-20b", "qwen/qwen3-32b"],
     );
 
-    const { data: groqData } = await callGroqWithFallback(
-      GROQ_BASE_URL,
-      GROQ_API_KEY,
-      textConfig,
-      (model) => ({
+    const { data: groqData } = await callGroqWithFallback({
+      chatCompletionsUrl: GROQ_BASE_URL,
+      apiKey: GROQ_API_KEY,
+      preferredModels: getAllModels(textConfig),
+      kind: "text",
+      label: "Comment generation",
+      signal: groqController.signal,
+      buildBody: (model) => ({
         model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Here is the post content to comment on:\n\n${postContent}` },
         ],
       }),
-      groqController.signal,
-      "Comment generation",
-    );
+    });
 
     clearTimeout(groqTimeout);
 
@@ -1101,7 +1034,8 @@ serve(async (req) => {
   } catch (e) {
     const err = e as any;
     const message = err instanceof Error ? err.message : "An unexpected error occurred. Please try again.";
-    const status = err.statusCode === 429 ? 429 : 500;
+    const status = err.statusCode === 429 || err instanceof GroqRateLimitError ? 429 : 500;
+    console.error("generate-comments failed:", message);
     return new Response(
       JSON.stringify({ error: message }),
       { status, headers: { ...corsHeaders, "Content-Type": "application/json" } },

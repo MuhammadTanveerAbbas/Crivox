@@ -121,7 +121,7 @@ crivox/
 │   ├── hooks/              # use-mobile, use-media-query
 │   ├── integrations/
 │   │   └── supabase/       # Supabase client + types
-│   ├── lib/                # groq.ts, utils.ts, schemas.ts, sanitize.ts
+│   ├── lib/                # groq.ts, groqReliability.ts, utils.ts, schemas.ts, sanitize.ts
 │   ├── pages/              # Route page components
 │   └── main.tsx            # Entry point
 ├── supabase/
@@ -163,6 +163,20 @@ Deploy on Vercel:
 supabase secrets set GROQ_API_KEY=<your-key>
 supabase functions deploy generate-comments
 ```
+
+---
+
+## Reliability
+
+The app is designed to keep running with minimal maintenance and to degrade gracefully when external services have issues.
+
+- **Groq model auto-discovery** — The `generate-comments` edge function fetches the available Groq model list at runtime, caches it server-side (30-minute TTL), and prefers the configured `GROQ_MODEL` / `GROQ_FALLBACK_MODELS` order. If a model is removed or unavailable, it refreshes the list and falls back to another compatible model automatically.
+- **Rate limits** — HTTP 429 responses respect `Retry-After` (capped) or use bounded exponential backoff with jitter. Retries are limited; if the limit persists the app fails gracefully with a clear message.
+- **Transient failures** — Temporary network errors and HTTP 5xx responses are retried a bounded number of times before returning a controlled failure. Retries are never infinite.
+- **Supabase resilience** — A transient Supabase failure in the rate-limit/profile lookups never blocks generation. `api/health.ts` runs a minimal read-only connectivity check with a 10s timeout.
+- **No secrets in the browser** — Groq and service-role keys stay server-side (edge functions / Vercel API routes).
+
+The reliability logic lives in `src/lib/groqReliability.ts` (pure, unit-tested) and is shared with the edge function.
 
 ---
 

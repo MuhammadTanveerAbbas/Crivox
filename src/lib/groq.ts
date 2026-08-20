@@ -23,12 +23,16 @@ const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/generate-comments`;
 const REQUEST_TIMEOUT = 90_000;
 const MAX_RETRIES = 2;
 
+function isRetryableStatus(status: number): boolean {
+  return status >= 500;
+}
+
 async function fetchWithRetry(url: string, options: RequestInit, retries: number): Promise<Response> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const response = await fetch(url, options);
-      if (response.ok) return response;
-      return response;
+      if (response.ok || !isRetryableStatus(response.status)) return response;
+      if (attempt === retries) return response;
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         throw error;
@@ -36,8 +40,8 @@ async function fetchWithRetry(url: string, options: RequestInit, retries: number
       if (attempt === retries) {
         throw new Error("Network error. Please check your connection and try again.");
       }
-      await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
     }
+    await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
   }
   throw new Error("Failed to reach the server. Please try again.");
 }
