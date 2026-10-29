@@ -12,7 +12,7 @@ function FullScreenLoader() {
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading } = useAuth();
 
-  // Don't render anything while resolving session — prevents flicker
+  // Don't render anything while resolving session prevents flicker
   if (loading) return <FullScreenLoader />;
 
   if (!session) return <Navigate to="/login" replace />;

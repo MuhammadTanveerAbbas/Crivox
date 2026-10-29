@@ -1,5 +1,4 @@
 import CrivoxIcon from "@/components/CrivoxIcon";
-import { ExternalLink, Github, Twitter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const linkGroups = [
@@ -48,24 +47,6 @@ export const Footer = () => {
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
               AI-powered comments that sound like you. For every platform.
             </p>
-            <div className="flex items-center gap-3 mt-5">
-              <a
-                href="https://themvpguy.vercel.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center hover:bg-accent/80 transition-colors"
-              >
-                <Twitter className="h-3.5 w-3.5 text-muted-foreground" />
-              </a>
-              <a
-                href="https://themvpguy.vercel.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-8 w-8 rounded-lg bg-accent flex items-center justify-center hover:bg-accent/80 transition-colors"
-              >
-                <Github className="h-3.5 w-3.5 text-muted-foreground" />
-              </a>
-            </div>
           </div>
 
           {/* Link columns */}
@@ -104,24 +85,14 @@ export const Footer = () => {
             <p className="text-sm text-muted-foreground">
               Made by{" "}
               <a
-                href="https://themvpguy.vercel.app"
+                href="https://muhammadtanveerabbas.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-foreground hover:text-primary transition-colors"
               >
-                The MVP Guy
+                Tanveer
               </a>
             </p>
-            <span className="text-muted-foreground/30">|</span>
-            <a
-              href="https://themvpguy.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              themvpguy.vercel.app
-              <ExternalLink className="h-3 w-3" />
-            </a>
           </div>
         </div>
       </div>

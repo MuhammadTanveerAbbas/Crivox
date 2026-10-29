@@ -99,11 +99,6 @@ export const PricingSection = () => {
               >
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="font-display text-2xl font-medium text-foreground">{plan.name}</h3>
-                  {plan.comingSoon && (
-                    <span className="text-[10px] font-semibold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 rounded-full shrink-0">
-                      Coming Soon
-                    </span>
-                  )}
                 </div>
                 <div className="mt-3 mb-1 flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-foreground">{plan.price}</span>
@@ -120,25 +115,36 @@ export const PricingSection = () => {
                   ))}
                 </ul>
 
-                <Button
-                  className={cn(
-                    "w-full rounded-xl font-medium min-h-[44px]",
-                    plan.featured
-                      ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                      : "bg-card border border-border text-foreground hover:bg-accent"
-                  )}
-                  onClick={plan.featured ? handleProClick : () => navigate("/login")}
-                  disabled={loading}
-                >
-                  {loading && plan.featured ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Loading...
-                    </span>
-                  ) : (
-                    plan.cta
-                  )}
-                </Button>
+                {plan.comingSoon ? (
+                  <div
+                    className={cn(
+                      "w-full rounded-xl font-medium min-h-[44px] flex items-center justify-center cursor-default select-none",
+                      "bg-muted border border-border text-muted-foreground"
+                    )}
+                  >
+                    Coming soon
+                  </div>
+                ) : (
+                  <Button
+                    className={cn(
+                      "w-full rounded-xl font-medium min-h-[44px]",
+                      plan.featured
+                        ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                        : "bg-card border border-border text-foreground hover:bg-accent"
+                    )}
+                    onClick={plan.featured ? handleProClick : () => navigate("/login")}
+                    disabled={loading}
+                  >
+                    {loading && plan.featured ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading...
+                      </span>
+                    ) : (
+                      plan.cta
+                    )}
+                  </Button>
+                )}
               </div>
             </StaggerItem>
           ))}

@@ -110,7 +110,7 @@ const Dashboard = () => {
           </div>
           <Button
             size="sm"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-sm"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
             onClick={() => navigate("/dashboard/generate")}
           >
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
@@ -137,15 +137,15 @@ const Dashboard = () => {
         ) : !hasData ? (
           /* Empty state */
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-              <Sparkles className="h-6 w-6 text-primary" />
+            <div className="h-14 w-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+              <Sparkles className="h-6 w-6 text-muted-foreground" />
             </div>
             <h2 className="text-lg font-semibold text-foreground mb-2">No comments yet</h2>
             <p className="text-sm text-muted-foreground max-w-xs mb-6">
               Generate your first AI-powered comment and watch your stats grow.
             </p>
             <Button
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-sm"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
               onClick={() => navigate("/dashboard/generate")}
             >
               <Sparkles className="h-4 w-4 mr-1.5" />
@@ -162,9 +162,9 @@ const Dashboard = () => {
                 { label: "Favorite Tone", value: mostUsedTone, icon: Zap, trend: "most used" },
                 { label: "Top Platform", value: mostUsedPlatform, icon: BarChart3, trend: "most used" },
               ].map((s) => (
-                <div key={s.label} className="bg-card border border-border rounded-2xl shadow-sm p-4 sm:p-5 hover:shadow-md transition-shadow">
-                  <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
-                    <s.icon className="h-4 w-4 text-primary" />
+                <div key={s.label} className="bg-card border border-border rounded-2xl p-4 sm:p-5 hover:bg-accent/30 transition-colors">
+                  <div className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center mb-3">
+                    <s.icon className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div className="text-xl sm:text-2xl font-bold text-foreground truncate">{s.value}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
@@ -174,7 +174,7 @@ const Dashboard = () => {
 
             {/* 7-day chart + Quick actions */}
             <div className="grid lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 bg-card border border-border rounded-2xl shadow-sm p-4 sm:p-5">
+              <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-4 sm:p-5">
                 <h3 className="text-sm font-semibold text-foreground mb-4">This Week</h3>
                 <div className="h-[160px]">
                   {dailyData.some((d) => d.count > 0) ? (
@@ -194,15 +194,15 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-card border border-border rounded-2xl shadow-sm p-4 sm:p-5">
+              <div className="bg-card border border-border rounded-2xl p-4 sm:p-5">
                 <h3 className="text-sm font-semibold text-foreground mb-3">Quick Actions</h3>
                 <div className="space-y-2">
                   <button
                     onClick={() => navigate("/dashboard/generate")}
-                    className="flex items-center gap-3 w-full p-3 rounded-xl bg-accent/50 hover:bg-accent transition-colors text-left group"
+                    className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-accent transition-colors text-left group"
                   >
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <Sparkles className="h-4 w-4 text-primary" />
+                    <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <Sparkles className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-foreground">Generate</div>
@@ -212,10 +212,10 @@ const Dashboard = () => {
                   </button>
                   <button
                     onClick={() => navigate("/dashboard/bulk")}
-                    className="flex items-center gap-3 w-full p-3 rounded-xl bg-accent/50 hover:bg-accent transition-colors text-left group"
+                    className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-accent transition-colors text-left group"
                   >
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <LayoutGrid className="h-4 w-4 text-primary" />
+                    <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <LayoutGrid className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-foreground">Bulk</div>
@@ -225,10 +225,10 @@ const Dashboard = () => {
                   </button>
                   <button
                     onClick={() => navigate("/dashboard/templates")}
-                    className="flex items-center gap-3 w-full p-3 rounded-xl bg-accent/50 hover:bg-accent transition-colors text-left group"
+                    className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-accent transition-colors text-left group"
                   >
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <BookOpen className="h-4 w-4 text-primary" />
+                    <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <BookOpen className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-foreground">Templates</div>
@@ -241,7 +241,7 @@ const Dashboard = () => {
             </div>
 
             {/* Recent activity */}
-            <div className="bg-card border border-border rounded-2xl shadow-sm">
+            <div className="bg-card border border-border rounded-2xl">
               <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
                 <h3 className="text-sm font-semibold text-foreground">Recent Activity</h3>
                 <button

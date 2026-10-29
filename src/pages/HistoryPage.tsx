@@ -139,7 +139,7 @@ const HistoryPage = () => {
             <Button
               variant={showFavoritesOnly ? "default" : "outline"}
               size="sm"
-              className={cn("gap-1.5", showFavoritesOnly && "bg-primary text-primary-foreground border-primary")}
+              className={cn("gap-1.5", showFavoritesOnly && "bg-foreground text-background border-foreground")}
               onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             >
               <Star className={cn("h-3.5 w-3.5", showFavoritesOnly && "fill-current")} />

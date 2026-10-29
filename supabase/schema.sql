@@ -1,5 +1,5 @@
 -- ============================================================
--- Crivox — Complete Schema (idempotent, safe to re-run)
+-- Crivox Complete Schema (idempotent, safe to re-run)
 -- ============================================================
 
 -- ── comment_history ─────────────────────────────────────────
@@ -92,6 +92,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   default_tone     TEXT        DEFAULT 'Professional',
   default_platform TEXT        DEFAULT 'LinkedIn',
   default_language TEXT        DEFAULT 'en',
+  -- Generator settings persisted from Controls panel
+  default_length        TEXT        DEFAULT 'Medium',
+  default_comment_count INTEGER     DEFAULT 3,
+  default_include_emoji     BOOLEAN NOT NULL DEFAULT false,
+  default_include_hashtags  BOOLEAN NOT NULL DEFAULT false,
+  default_include_cta       BOOLEAN NOT NULL DEFAULT false,
   full_name        TEXT,
   profession       TEXT,
   industry         TEXT,
@@ -101,6 +107,13 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Add new columns idempotently for existing deployments
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS default_length            TEXT    DEFAULT 'Medium';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS default_comment_count     INTEGER DEFAULT 3;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS default_include_emoji     BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS default_include_hashtags  BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS default_include_cta       BOOLEAN NOT NULL DEFAULT false;
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 

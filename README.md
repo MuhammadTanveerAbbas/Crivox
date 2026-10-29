@@ -1,18 +1,16 @@
 <div align="center">
 
-  <img src="public/logo.svg" alt="Crivox Logo" width="80" height="80" />
-
 # Crivox
 
 **AI-powered social media comment generator for every platform and tone.**
 
-[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
 [![Groq](https://img.shields.io/badge/Groq_AI-F55036?style=for-the-badge)](https://console.groq.com)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 </div>
 
@@ -20,26 +18,25 @@
 
 ## Overview
 
-Crivox solves the blank reply box problem. Paste any social media post and get thoughtful, platform-aware comments tailored to your voice. Built for creators, marketers, and professionals who engage daily on LinkedIn, Twitter/X, Instagram, Facebook, Reddit, and blogs.
+Crivox solves the blank reply box problem. Paste any social media post and get thoughtful, platform-aware comments tailored to your voice in seconds.
+
+Built for creators, marketers, and professionals who engage daily on LinkedIn, Twitter/X, Instagram, Facebook, Reddit, and more.
 
 ---
 
 ## Features
 
-- **AI Comment Generator** - Paste text, a URL, or upload an image screenshot. Get up to 5 unique variations powered by Groq (Llama 3.3 70B + Llama 4 Scout for vision)
-- **8 Tone Styles** - Professional, Casual, Witty, Supportive, Bold, Educational, Insightful, Authoritative
-- **9 Languages** - English, Spanish, French, German, Portuguese, Hindi, Arabic, Chinese, Japanese (Pro: multi-language; Free: English only)
-- **Bulk Generation** - Generate comments for up to 5 posts at once with CSV export
-- **Comment Queue** - Schedule, track, and mark comments as posted with date/time and notes
-- **Templates Library** - 11 built-in presets across 6 categories + create your own
-- **Analytics Dashboard** - 30-day trend, tone distribution pie chart, platform breakdown bar chart
-- **Generation History** - Search, filter by tone/platform, favorite, re-generate, CSV export
-- **Shareable Links** - Public comment set URLs with no login required
-- **Dark/Light Mode** - Persistent theme preference
-- **Voice Profile** - Store up to 3 writing samples so AI matches your personal style
-- **Image/URL Input** - Paste a URL or upload a screenshot; Crivox fetches or reads the content
-- **11 Platforms** - LinkedIn, Twitter/X, Instagram, Facebook, Reddit, Blog/Website, Hacker News, Indie Hackers, GitHub Discussions, Threads, Medium
-- **Pro Plan ($9/mo)** - Up to 5 variations, 9 languages, priority rate limits, multi-language support
+- **AI Comment Generator**: Paste text, a URL, or upload a screenshot. Get up to 5 unique variations powered by Groq (auto-selects the best available model at runtime)
+- **8 Tone Styles**: Professional, Casual, Witty, Supportive, Bold, Educational, Insightful, Authoritative
+- **9 Languages**: English, Spanish, French, German, Portuguese, Hindi, Arabic, Chinese, Japanese
+- **11 Platforms**: LinkedIn, Twitter/X, Instagram, Facebook, Reddit, Blog, Hacker News, Indie Hackers, GitHub Discussions, Threads, Medium
+- **Bulk Generation**: Generate comments for up to 5 posts at once with CSV export
+- **Templates Library**: 11 built-in presets + create your own across 6 categories
+- **Comment History**: Search, filter by tone/platform, favorite, re-generate, export CSV
+- **Shareable Links**: Share a public comment set with a single link (no login required)
+- **Voice Profile**: Store up to 3 writing samples so the AI matches your personal style
+- **AI Memory**: Save your name, profession, and goals so the AI always writes in context
+- **Dark / Light Mode**: Persistent theme preference
 
 ---
 
@@ -48,14 +45,13 @@ Crivox solves the blank reply box problem. Paste any social media post and get t
 | Category | Technology |
 |---|---|
 | Frontend | React 18, TypeScript, Vite |
-| Styling | Tailwind CSS v3, shadcn/ui, Radix UI primitives |
+| Styling | Tailwind CSS v3, shadcn/ui, Radix UI |
 | Backend | Supabase (Auth, PostgreSQL, Row Level Security) |
-| AI | Groq API (Llama 3.3 70B, Llama 4 Scout) |
+| AI | Groq API auto model selection at runtime |
 | State | TanStack Query v5 |
-| Forms | React Hook Form, Zod |
-| Charts | Recharts |
 | Animations | Framer Motion |
-| Deployment | Vercel (SPA) |
+| Charts | Recharts |
+| Deployment | Vercel |
 
 ---
 
@@ -64,7 +60,7 @@ Crivox solves the blank reply box problem. Paste any social media post and get t
 ### Prerequisites
 
 - Node.js 18+
-- pnpm
+- npm / pnpm
 - Supabase project
 - Groq API key
 
@@ -73,10 +69,10 @@ Crivox solves the blank reply box problem. Paste any social media post and get t
 ```bash
 git clone https://github.com/MuhammadTanveerAbbas/crivox.git
 cd crivox
-pnpm install
+npm install          # or pnpm install
 cp .env.example .env.local
 # Fill in your Supabase and Groq credentials
-pnpm dev
+npm run dev
 ```
 
 ---
@@ -88,14 +84,14 @@ pnpm dev
 | `VITE_SUPABASE_URL` | Yes | Supabase project URL |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Yes | Supabase anon/public key |
 | `VITE_SUPABASE_PROJECT_ID` | Yes | Supabase project ID |
-| `SUPABASE_URL` | Server | Same as VITE_SUPABASE_URL (for Vercel API functions) |
-| `SUPABASE_ANON_KEY` | Server | Same as VITE_SUPABASE_PUBLISHABLE_KEY (for Vercel API) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server | Supabase service role key (edge functions only) |
-| `GROQ_API_KEY` | Yes | Groq API key (set as Supabase Edge Function secret) |
+| `SUPABASE_URL` | Server | Same as VITE_SUPABASE_URL (Vercel API functions) |
+| `SUPABASE_ANON_KEY` | Server | Same as VITE_SUPABASE_PUBLISHABLE_KEY |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server | Supabase service role key (edge functions) |
+| `GROQ_API_KEY` | Yes | Groq API key (Supabase Edge Function secret) |
 | `CRON_SECRET` | Keep-alive | Secret for Vercel cron endpoint |
-| `STRIPE_SECRET_KEY` | Billing | Stripe secret key (Vercel env; for api/create-checkout) |
-| `STRIPE_WEBHOOK_SECRET` | Billing | Stripe webhook signing secret (Vercel env; for api/stripe-webhook) |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | Billing | Stripe publishable key (Vite frontend) |
+| `STRIPE_SECRET_KEY` | Billing | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Billing | Stripe webhook signing secret |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Billing | Stripe publishable key |
 
 ---
 
@@ -103,33 +99,25 @@ pnpm dev
 
 ```
 crivox/
-├── api/                    # Vercel serverless functions
+├── api/                        # Vercel serverless functions
 │   ├── health.ts
 │   ├── keep-alive.ts
-│   ├── create-checkout.ts   # Stripe Checkout session creation
-│   └── stripe-webhook.ts    # Stripe webhook handler
-├── public/                 # Static assets
+│   ├── create-checkout.ts
+│   └── stripe-webhook.ts
 ├── src/
 │   ├── components/
-│   │   ├── landing/        # Landing page sections
-│   │   ├── ui/             # shadcn/ui primitives
+│   │   ├── landing/            # Landing page sections
+│   │   ├── ui/                 # shadcn/ui primitives
 │   │   ├── CommentGenerator.tsx
 │   │   ├── DashboardLayout.tsx
-│   │   ├── ErrorBoundary.tsx
-│   │   └── ...
-│   ├── contexts/           # AuthContext
-│   ├── hooks/              # use-mobile, use-media-query
-│   ├── integrations/
-│   │   └── supabase/       # Supabase client + types
-│   ├── lib/                # groq.ts, groqReliability.ts, utils.ts, schemas.ts, sanitize.ts
-│   ├── pages/              # Route page components
-│   └── main.tsx            # Entry point
+│   │   └── CrivoxIcon.tsx
+│   ├── contexts/               # AuthContext
+│   ├── hooks/
+│   ├── lib/                    # groq.ts, groqReliability.ts, utils, schemas, sanitize
+│   └── pages/
 ├── supabase/
-│   ├── functions/generate-comments/  # Edge function
-│   ├── schema.sql          # Full DB schema with RLS
-│   └── config.toml
+│   └── functions/generate-comments/   # Edge function (Groq calls)
 ├── .env.example
-├── package.json
 └── README.md
 ```
 
@@ -139,23 +127,30 @@ crivox/
 
 | Command | Description |
 |---|---|
-| `pnpm dev` | Start dev server (port 8080) |
-| `pnpm build` | Production build |
-| `pnpm preview` | Preview production build |
-| `pnpm lint` | ESLint check |
-| `pnpm typecheck` | TypeScript check |
-| `pnpm test` | Vitest test run |
+| `npm run dev` | Start dev server (port 8080) |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | ESLint check |
+| `npm test` | Vitest test run |
+
+---
+
+## Groq Auto Model Selection
+
+The `generate-comments` edge function does **not** hardcode a single model name. At startup it calls the Groq `/models` endpoint, caches the result for 30 minutes, and picks the best available chat-capable model from the configured preference list (`GROQ_MODEL` → `GROQ_FALLBACK_MODELS`). If a model is paused, removed, or returns a 404, the function automatically retries with the next available model no redeployment required.
+
+Rate limits (`429`) are handled with `Retry-After`-aware exponential backoff and bounded retries, so transient limits degrade gracefully rather than surfacing errors to the user.
 
 ---
 
 ## Deployment
 
-Deploy on Vercel:
+### Vercel
 
 1. Push to GitHub
 2. Import project in Vercel dashboard
-3. Set environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`, `CRON_SECRET`)
-4. Deploy (build command: `vite build`, output: `dist`)
+3. Set all environment variables listed above
+4. Deploy build command: `vite build`, output directory: `dist`
 
 ### Supabase Edge Function
 
@@ -166,27 +161,13 @@ supabase functions deploy generate-comments
 
 ---
 
-## Reliability
-
-The app is designed to keep running with minimal maintenance and to degrade gracefully when external services have issues.
-
-- **Groq model auto-discovery** — The `generate-comments` edge function fetches the available Groq model list at runtime, caches it server-side (30-minute TTL), and prefers the configured `GROQ_MODEL` / `GROQ_FALLBACK_MODELS` order. If a model is removed or unavailable, it refreshes the list and falls back to another compatible model automatically.
-- **Rate limits** — HTTP 429 responses respect `Retry-After` (capped) or use bounded exponential backoff with jitter. Retries are limited; if the limit persists the app fails gracefully with a clear message.
-- **Transient failures** — Temporary network errors and HTTP 5xx responses are retried a bounded number of times before returning a controlled failure. Retries are never infinite.
-- **Supabase resilience** — A transient Supabase failure in the rate-limit/profile lookups never blocks generation. `api/health.ts` runs a minimal read-only connectivity check with a 10s timeout.
-- **No secrets in the browser** — Groq and service-role keys stay server-side (edge functions / Vercel API routes).
-
-The reliability logic lives in `src/lib/groqReliability.ts` (pure, unit-tested) and is shared with the edge function.
-
----
-
 ## License
 
-MIT License - see [LICENSE](LICENSE).
+MIT see [LICENSE](LICENSE).
 
 ---
 
-## Built by The MVP Guy
+## Built by Tanveer
 
-**Muhammad Tanveer Abbas** - SaaS Developer | Production-ready MVPs in 14-21 days
-Portfolio: https://themvpguy.vercel.app
+**Muhammad Tanveer Abbas** | SaaS Developer
+Portfolio: [muhammadtanveerabbas.vercel.app](https://muhammadtanveerabbas.vercel.app)

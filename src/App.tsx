@@ -17,7 +17,6 @@ const GeneratorPage = lazy(() => import("./pages/GeneratorPage"));
 const HistoryPage = lazy(() => import("./pages/HistoryPage"));
 const TemplatesPage = lazy(() => import("./pages/TemplatesPage"));
 const BulkGeneratePage = lazy(() => import("./pages/BulkGeneratePage"));
-const QueuePage = lazy(() => import("./pages/QueuePage"));
 const SharePage = lazy(() => import("./pages/SharePage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
@@ -59,7 +58,6 @@ const App = () => (
                   <Route path="/dashboard/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
                   <Route path="/dashboard/templates" element={<ProtectedRoute><TemplatesPage /></ProtectedRoute>} />
                   <Route path="/dashboard/bulk" element={<ProtectedRoute><BulkGeneratePage /></ProtectedRoute>} />
-                  <Route path="/dashboard/queue" element={<ProtectedRoute><QueuePage /></ProtectedRoute>} />
                   <Route path="/dashboard/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
 
                   <Route path="*" element={<NotFound />} />

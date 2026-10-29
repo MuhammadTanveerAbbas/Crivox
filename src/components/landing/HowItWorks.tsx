@@ -49,7 +49,6 @@ export const HowItWorks = () => (
     </ScrollReveal>
 
     <StaggerContainer className="grid sm:grid-cols-3 gap-5 sm:gap-8 relative">
-      <div className="hidden sm:block absolute top-12 left-[calc(16.67%+2.5rem)] right-[calc(16.67%+2.5rem)] h-px bg-gradient-to-r from-blue-500/40 via-violet-500/40 to-amber-500/40" />
 
       {steps.map((s) => (
         <StaggerItem key={s.step}>

@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
 import CrivoxIcon from "@/components/CrivoxIcon";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +13,6 @@ const navLinks = [
 export const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -89,41 +86,14 @@ export const Navbar = () => {
         </div>
 
         {/* Mobile */}
-        <div className="flex items-center gap-1 md:hidden">
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-11 w-11 min-h-[44px] min-w-[44px] rounded-xl">
-                <Menu className="h-4 w-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-64 bg-background/95 backdrop-blur-xl border-border">
-              <div className="flex flex-col gap-1 mt-8">
-                <div className="flex items-center gap-2.5 px-3 py-3 mb-4">
-                  <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                    <CrivoxIcon size={20} />
-                  </div>
-                  <span className="font-display text-base text-foreground">Crivox</span>
-                </div>
-                {navLinks.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNav(item)}
-                    className="text-left px-3 py-3 min-h-[44px] text-sm text-muted-foreground rounded-xl hover:text-foreground hover:bg-accent/50 transition-colors"
-                  >
-                    {item.label}
-                  </button>
-                ))}
-                <div className="border-t border-border mt-3 pt-3 space-y-2 px-1">
-                  <Button variant="outline" className="w-full rounded-xl" onClick={() => { navigate("/login"); setOpen(false); }}>
-                    Log in
-                  </Button>
-                  <Button className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:opacity-90 rounded-xl shadow-sm" onClick={() => { navigate("/login"); setOpen(false); }}>
-                    Get Started
-                  </Button>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+        <div className="flex items-center gap-2 md:hidden">
+          <Button
+            size="sm"
+            className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:opacity-90 rounded-xl px-4 py-2 text-sm font-medium shadow-sm"
+            onClick={() => navigate("/login")}
+          >
+            Get Start
+          </Button>
         </div>
       </div>
     </nav>

@@ -122,7 +122,7 @@ const BulkGeneratePage = () => {
               {tones.map((t) => (
                 <button key={t.label} onClick={() => setTone(t.label)}
                   className={cn("flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-medium border",
-                    tone === t.label ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border hover:bg-accent"
+                    tone === t.label ? "bg-foreground text-background border-foreground" : "bg-card text-foreground border-border hover:bg-accent"
                   )}>
                   <t.icon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{t.label}</span>
                 </button>
@@ -136,7 +136,7 @@ const BulkGeneratePage = () => {
               {lengths.map((l) => (
                 <button key={l} onClick={() => setLength(l)}
                   className={cn("px-3 py-1.5 rounded-full text-sm border",
-                    length === l ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-card text-foreground border-border hover:bg-accent"
+                    length === l ? "bg-foreground text-background border-foreground" : "bg-card text-foreground border-border hover:bg-accent"
                   )}>
                   {l}
                 </button>

@@ -148,11 +148,11 @@ const TemplatesPage = () => {
           <div className="flex flex-wrap gap-1.5">
             <button
               onClick={() => setActiveCategory("all")}
-              className={cn("px-3 py-1.5 rounded-full text-xs font-medium", activeCategory === "all" ? "bg-primary text-primary-foreground shadow-sm" : "bg-accent text-muted-foreground")}
+              className={cn("px-3 py-1.5 rounded-full text-xs font-medium", activeCategory === "all" ? "bg-foreground text-background" : "bg-accent text-muted-foreground")}
             >All</button>
             {CATEGORIES.map((c) => (
               <button key={c} onClick={() => setActiveCategory(c)}
-                className={cn("px-3 py-1.5 rounded-full text-xs font-medium", activeCategory === c ? "bg-primary text-primary-foreground shadow-sm" : "bg-accent text-muted-foreground")}
+                className={cn("px-3 py-1.5 rounded-full text-xs font-medium", activeCategory === c ? "bg-foreground text-background" : "bg-accent text-muted-foreground")}
               >{c}</button>
             ))}
           </div>

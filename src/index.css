@@ -8,8 +8,34 @@ html, body {
   width: 100%;
 }
 
+/* Hide scrollbars everywhere functionality preserved */
+* {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / Edge */
+}
+*::-webkit-scrollbar {
+  display: none;                /* Chrome / Safari / Opera */
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+/* Remove blue ring/outline on focused inputs, selects, textareas, buttons */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+button:focus,
+button:focus-visible,
+[role="combobox"]:focus,
+[role="combobox"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-ring-shadow: none !important;
+  --tw-ring-offset-shadow: none !important;
 }
 
 /* Responsive media */
@@ -174,5 +200,14 @@ img, video, svg {
   .panel {
     background: hsl(var(--panel-bg));
     border: 1px solid hsl(var(--panel-border));
+  }
+
+  /* Utility hide scrollbar while preserving scroll */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }

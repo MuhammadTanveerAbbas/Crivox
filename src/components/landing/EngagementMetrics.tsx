@@ -14,7 +14,7 @@ import {
 import { Clock, Layers, Globe } from "lucide-react";
 import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 
-/** Illustrative sample data — not real user metrics */
+/** Illustrative sample data not real user metrics */
 const sampleWeeklyData = [
   { day: "Mon", drafts: 2, finalized: 1 },
   { day: "Tue", drafts: 3, finalized: 2 },
@@ -25,7 +25,7 @@ const sampleWeeklyData = [
   { day: "Sun", drafts: 2, finalized: 2 },
 ];
 
-/** Illustrative sample data — not real user metrics */
+/** Illustrative sample data not real user metrics */
 const sampleWorkflowData = [
   { step: "Paste", time: 10 },
   { step: "Configure", time: 15 },
